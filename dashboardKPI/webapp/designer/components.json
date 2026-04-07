@@ -1,0 +1,15 @@
+{
+	"components": [
+		{
+			"id": "dashboardKPI",
+			"type": "VIEW_PLUGIN",
+			"allowMultipleInstances": false,
+			"name": "kpmg.custom.tile.dashboardKPI.dashboardKPI",
+			"propertyEditor": "kpmg.custom.tile.dashboardKPI.dashboardKPI.builder.PropertyEditor",
+			"i18n": "kpmg.custom.tile.dashboardKPI.dashboardKPI.i18n.i18n",
+            "productionProcessEnabled": true,
+           "productionProcessTitle": "dashboardKPI",
+			"supportedPodTypes": ["WORK_CENTER","OPERATION","ORDER","OTHER"]
+		}   
+	]
+}

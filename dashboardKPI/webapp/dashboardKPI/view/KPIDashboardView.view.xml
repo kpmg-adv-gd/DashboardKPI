@@ -1,0 +1,208 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:l="sap.ui.layout" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:viz="sap.viz.ui5.controls" xmlns:vizdata="sap.viz.ui5.data" controllerName="kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.KPIDashboardView" width="100%" height="100%">
+	
+	<Page id="kpiDashboardPage" title="{i18n>dashboard.kpi.title}" showNavButton="true" navButtonPress="onNavBack" class="kpiDashboardPage">
+		<content>
+			<ScrollContainer height="100%" width="100%" horizontal="false" vertical="true">
+				<VBox class="sapUiMediumMargin">
+					
+					<!-- Header Info Bar -->
+					<Panel class="kpiHeaderPanel sapUiSmallMarginBottom" backgroundDesign="Solid">
+						<content>
+							<HBox justifyContent="SpaceBetween" alignItems="Center" width="100%" class="sapUiSmallMargin kpiHeaderBar">
+								<VBox class="kpiHeaderItem">								<Label text="{i18n>dashboard.header.date}" design="Bold" class="kpiHeaderLabel"/>
+								<Text text="{KPIModel>/header/currentDate}" class="kpiHeaderValue"/>
+							</VBox>
+							<VBox class="kpiHeaderItem">									<Label text="{i18n>dashboard.header.actual}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/actual}" class="kpiHeaderValue kpiHeaderDateRed"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.project}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/project}" class="kpiHeaderValue"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.wbe}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/wbe}" class="kpiHeaderValue"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.section}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/section}" class="kpiHeaderValue"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.sfc}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/sfc}" class="kpiHeaderValue"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.order}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/order}" class="kpiHeaderValue"/>
+								</VBox>
+								<VBox class="kpiHeaderItem">
+									<Label text="{i18n>dashboard.header.material}" design="Bold" class="kpiHeaderLabel"/>
+									<Text text="{KPIModel>/header/material}" class="kpiHeaderValue"/>
+								</VBox>
+							</HBox>
+						</content>
+					</Panel>
+					
+					<!-- Main Content: Two Columns -->
+					<HBox width="100%" class="kpiMainColumns">
+						
+						<!-- LEFT COLUMN: Overview -->
+						<VBox class="kpiLeftColumn">
+							<Panel headerText="{i18n>dashboard.section.overview}" class="kpiSectionPanel sapUiSmallMarginBottom">
+								<content>
+									<VBox>
+										<!-- FIRST ROW: Gruppi + Machine + SFC + Scostamento -->
+										<HBox class="kpiOverviewRow sapUiSmallMargin" alignItems="Stretch">
+											
+											<!-- % Gruppi Card -->
+											<VBox class="kpiCard sapUiSmallMarginEnd">
+												<SegmentedButton id="gruppiSegmentedButton" selectedKey="gruppi" select="onSegmentedButtonSelect">
+													<items>
+														<SegmentedButtonItem key="gruppi" text="GRUPPI"/>
+														<SegmentedButtonItem key="aggr" text="AGGR"/>
+														<SegmentedButtonItem key="macr" text="MACR"/>
+													</items>
+												</SegmentedButton>
+												<Label text="% Gruppi" design="Bold" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
+												<l:Grid defaultSpan="L6 M6 S12">
+													<VBox>
+														<Label text="{i18n>dashboard.gruppi.daIniziare}" class="kpiSmallLabel"/>
+														<Text text="{KPIModel>/charts/gruppi/daIniziare}" class="kpiPercentValue"/>
+													</VBox>
+													<VBox>
+														<Label text="{i18n>dashboard.gruppi.iniziati}" class="kpiSmallLabel"/>
+														<Text text="{KPIModel>/charts/gruppi/iniziati}" class="kpiPercentValue"/>
+													</VBox>
+												</l:Grid>
+												<VBox class="sapUiTinyMarginTop">
+													<Label text="{i18n>dashboard.gruppi.completati}" class="kpiSmallLabel"/>
+													<Text text="{KPIModel>/charts/gruppi/completati}" class="kpiPercentValue"/>
+												</VBox>
+											</VBox>
+											
+											<!-- Machine Progress Card -->
+											<VBox class="kpiCard sapUiSmallMarginEnd" alignItems="Center">
+												<Label text="{i18n>dashboard.chart.machineProgress}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<VBox id="machineProgressChartContainer" width="100%" alignItems="Center"/>
+												<Link text="{i18n>dashboard.link.details}" press="onMachineProgressDetails" class="sapUiSmallMarginTop"/>
+											</VBox>
+											
+											<!-- SFC Gruppi Progress Card -->
+											<VBox class="kpiCard sapUiSmallMarginEnd" alignItems="Center">
+												<Label text="{i18n>dashboard.chart.sfcProgress}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<VBox id="sfcProgressChartContainer" width="100%" alignItems="Center"/>
+												<Link text="{i18n>dashboard.link.details}" press="onSFCProgressDetails" class="sapUiSmallMarginTop"/>
+											</VBox>
+											
+											<!-- Scostamento Card -->
+											<VBox class="kpiCard" alignItems="Center">
+												<SegmentedButton id="scostamentoSegmentedButton" selectedKey="GD" select="onScostamentoSegmentedButtonSelect" width="calc(100% - 1rem)" class="sapUiTinyMargin">
+													<items>
+														<SegmentedButtonItem key="GD" text="GD"/>
+														<SegmentedButtonItem key="Fornitori" text="FORNITORI"/>
+													</items>
+												</SegmentedButton>
+												<Label text="{i18n>dashboard.chart.scostamento}" design="Bold" class="sapUiTinyMarginTop sapUiTinyMarginBottom"/>
+												<VBox id="scostamentoChartContainer" width="100%" alignItems="Center"/>
+												<Link text="{i18n>dashboard.link.details}" press="onScostamentoDetails" class="sapUiSmallMarginTop"/>
+											</VBox>
+										</HBox>
+										
+										<VBox class="kpiRowSeparator"/>
+										
+										<!-- SECOND ROW: Mancanti + Evasi + Non Conformità -->
+										<HBox class="kpiBottomRow sapUiSmallMargin" alignItems="Stretch">
+											
+											<!-- Mancanti Card -->
+											<VBox class="kpiCard sapUiSmallMarginEnd">
+												<Label text="{i18n>dashboard.section.mancanti}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<VBox class="sapUiTinyMarginTop">
+													<HBox alignItems="End">
+														<Text text="{i18n>dashboard.mancanti.totMac}" class="kpiSmallLabel"/>
+													</HBox>
+													<HBox alignItems="End">
+														<Text text="{KPIModel>/charts/mancanti/percentuale}" class="kpiLargeValue kpiValueRed"/>
+														<Text text="{KPIModel>/charts/mancanti/totale}" class="kpiMediumValue sapUiSmallMarginBegin"/>
+													</HBox>
+												</VBox>
+												<Label text="{i18n>dashboard.mancanti.gruppiConMancanti}" class="sapUiSmallMarginTop" design="Bold"/>
+												<VBox id="mancantiChartContainer" width="100%" alignItems="Center"/>
+												<Link text="{i18n>dashboard.link.details}" press="onMancantiDetails" class="sapUiSmallMarginTop"/>
+											</VBox>
+											
+											<!-- Evasi Card -->
+											<VBox class="kpiCard sapUiSmallMarginEnd" alignItems="Center">
+												<Label text="{i18n>dashboard.section.evasi}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<Label text="{i18n>dashboard.evasi.magazzino}" design="Bold" class="sapUiSmallMarginTop"/>
+												<VBox id="evasiChartContainer" width="100%" alignItems="Center"/>			
+												<Link text="{i18n>dashboard.link.details}" press="onEvasiDetails" class="sapUiSmallMarginTop"/>
+											</VBox>
+											
+											<!-- Non Conformità e Modifiche Engineering Card -->
+											<VBox class="kpiCard" style="flex:2 1 0">
+												<Label text="{i18n>dashboard.section.nonConformita}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<HBox class="sapUiSmallMarginTop">
+													<!-- Gruppi con NC -->
+													<VBox class="kpiNCHalf sapUiSmallMarginEnd">
+														<Label text="{i18n>dashboard.nc.gruppiConNC}" design="Bold"/>
+														<Text text="{KPIModel>/charts/nonConformita/gruppiConNC}" class="kpiLargeValue sapUiTinyMarginBottom"/>
+														<Label text="{i18n>dashboard.nc.presenzaNC}" design="Bold" class="sapUiSmallMarginTop"/>
+														<VBox id="ncPresenzaChartContainer" width="100%" alignItems="Center"/>
+														<Link text="{i18n>dashboard.link.details}" press="onNCDetails" class="sapUiSmallMarginTop"/>
+													</VBox>
+													<!-- MA+MT+MK -->
+													<VBox class="kpiNCHalf">
+														<Label text="MA+MT+MK" design="Bold"/>
+														<HBox class="sapUiTinyMarginTop">
+															<VBox class="sapUiSmallMarginEnd">
+																<Text text="Open" class="kpiSmallLabel"/>
+																<Text text="{KPIModel>/charts/nonConformita/maOpen}" class="kpiMediumValue"/>
+															</VBox>
+															<VBox>
+																<Text text="Closed" class="kpiSmallLabel"/>
+																<Text text="{KPIModel>/charts/nonConformita/maClosed}" class="kpiMediumValue"/>
+															</VBox>
+														</HBox>
+														<Label text="{i18n>dashboard.nc.modificheOpen}" design="Bold" class="sapUiSmallMarginTop"/>
+														<VBox id="modificheOpenChartContainer" width="100%"/>
+														<Label text="{i18n>dashboard.nc.modificheClosed}" design="Bold" class="sapUiSmallMarginTop"/>
+														<VBox id="modificheClosedChartContainer" width="100%"/>															<Link text="{i18n>dashboard.link.details}" press="onModificheDetails" class="sapUiSmallMarginTop"/>													</VBox>
+												</HBox>
+											</VBox>
+										</HBox>
+									</VBox>
+								</content>
+							</Panel>
+						</VBox>
+						
+						<!-- RIGHT COLUMN: Varianze -->
+						<VBox class="kpiRightColumn">
+							<Panel headerText="{i18n>dashboard.section.varianze}" class="kpiSectionPanel">
+								<content>
+									<VBox class="sapUiSmallMargin">
+										<!-- Tipologia Varianze Card -->
+										<VBox class="kpiCard sapUiSmallMarginBottom">
+											<Label text="{i18n>dashboard.chart.tipologiaVarianze}" design="Bold" class="sapUiTinyMarginBottom"/>
+											<VBox id="tipologiaVarianzeChartContainer" width="100%"/>
+											<Link text="{i18n>dashboard.link.details}" press="onTipologiaVarianzeDetails" class="sapUiSmallMarginTop"/>
+										</VBox>
+										
+										<!-- Responsabilità Varianze Card -->
+										<VBox class="kpiCard">
+											<Label text="{i18n>dashboard.chart.responsabilitaVarianze}" design="Bold" class="sapUiTinyMarginBottom"/>
+											<VBox id="responsabilitaVarianzeChartContainer" width="100%"/>
+											<Link text="{i18n>dashboard.link.details}" press="onResponsabilitaVarianzeDetails" class="sapUiSmallMarginTop"/>
+										</VBox>
+									</VBox>
+								</content>
+							</Panel>
+						</VBox>
+						
+					</HBox>
+					
+				</VBox>
+			</ScrollContainer>
+		</content>
+	</Page>
+  
+</mvc:View>

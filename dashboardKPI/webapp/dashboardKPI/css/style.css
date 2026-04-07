@@ -1,0 +1,368 @@
+/* ================================= */
+/* KPI DASHBOARD STYLES              */
+/* ================================= */
+
+/* Dashboard page background */
+.kpiDashboardPage .sapMPageBgSolid {
+    background-color: #f0f2f5;
+}
+
+/* ---- Header Panel ---- */
+.kpiHeaderPanel {
+    background-color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.kpiHeaderPanel .sapMPanelContent {
+    padding: 0 !important;
+}
+
+.kpiHeaderBar {
+    flex-wrap: wrap;
+}
+
+.kpiHeaderItem {
+    padding: 0.35rem 0.75rem;
+    border-right: 1px solid #eaedf0;
+    min-width: 70px;
+}
+
+.kpiHeaderItem:last-child {
+    border-right: none;
+}
+
+.kpiHeaderLabel {
+    font-size: 0.65rem;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.1rem;
+}
+
+.kpiHeaderValue {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.kpiHeaderDateRed {
+    background-color: #d32f2f !important;
+    color: white !important;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ---- KPI Values ---- */
+.kpiLargeValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.kpiMediumValue {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.kpiPercentValue {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.kpiSmallLabel {
+    font-size: 0.72rem;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+.kpiValueRed {
+    color: #d32f2f;
+}
+
+.kpiValueGreen {
+    color: #2e7d32;
+}
+
+/* ---- Card / Box styling ---- */
+.kpiBox {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 1rem;
+}
+
+.kpiBox .sapMPanelHdr,
+.kpiSectionPanel .sapMPanelHdr {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-bottom: 2px solid #d32f2f;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Panels used as section wrappers */
+.kpiSectionPanel {
+    background-color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.kpiSectionPanel > .sapMPanelContent {
+    padding: 0.75rem !important;
+}
+
+/* Individual KPI card within a section row */
+.kpiCard {
+    background-color: #fafbfc;
+    border: 1px solid #eaedf0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.kpiCard:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.kpiCard .sapMLabel {
+    font-weight: 700 !important;
+    color: #1a1a2e !important;
+}
+
+/* ---- Chart containers ---- */
+#machineProgressPie,
+#sfcProgressPie,
+#mancantiPie,
+#evasiPie,
+#ncPresenzaPie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Pie chart containers fill card width */
+.kpiCard > [id$="ChartContainer"] {
+    width: 100% !important;
+}
+
+#scostamentoBar,
+#tipologiaVarianzeBar,
+#responsabilitaVarianzeBar,
+#modificheOpenBar,
+#modificheClosedBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---- Overview row items equal flex ---- */
+.kpiOverviewRow {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.kpiOverviewRow > .sapMFlexItem,
+.kpiOverviewRow > div {
+    flex: 1 1 0;
+    min-width: 180px;
+}
+
+/* Bottom row cards */
+.kpiBottomRow {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.kpiBottomRow > .sapMFlexItem,
+.kpiBottomRow > div {
+    flex: 1 1 0;
+    min-width: 220px;
+}
+
+/* ---- Varianze section ---- */
+.kpiVarianzeBox {
+    background-color: #ffffff;
+    border: 1px solid #eaedf0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: none;
+    margin-bottom: 0.75rem;
+}
+
+/* ---- Segmented Button ---- */
+#gruppiSegmentedButton {
+    margin-bottom: 0.5rem;
+}
+
+#gruppiSegmentedButton .sapMSegBBtn {
+    min-width: 55px;
+    border-radius: 6px;
+}
+
+/* ---- Links ---- */
+.kpiCard .sapMLnk {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #d32f2f;
+}
+
+/* ---- Main layout columns ---- */
+.kpiMainColumns {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Left column takes ~65%, right ~35% */
+.kpiLeftColumn {
+    flex: 65 1 0 !important;
+    min-width: 0;
+}
+
+.kpiRightColumn {
+    flex: 35 1 0 !important;
+    min-width: 0;
+}
+
+/* ---- Responsive tweaks ---- */
+.kpiGruppiPanel .sapMPanelContent {
+    padding: 0.5rem !important;
+}
+
+/* NC section inner halves */
+.kpiNCHalf {
+    flex: 1 1 50%;
+    min-width: 0;
+}
+
+/* Separator between overview and bottom rows */
+.kpiRowSeparator {
+    border-top: 1px solid #eaedf0;
+    margin: 0.75rem 0;
+}
+
+/* ================================================= */
+/* RESPONSIVE: Laptops / smaller desktops < 1400px  */
+/* ================================================= */
+@media screen and (max-width: 1400px) {
+    .kpiLeftColumn {
+        flex: 60 1 0 !important;
+    }
+    .kpiRightColumn {
+        flex: 40 1 0 !important;
+    }
+
+    .kpiOverviewRow > .sapMFlexItem,
+    .kpiOverviewRow > div {
+        flex: 1 1 calc(50% - 0.75rem);
+        min-width: 180px;
+    }
+
+    .kpiHeaderItem {
+        padding: 0.5rem 0.8rem;
+        min-width: 80px;
+    }
+
+    .kpiHeaderLabel {
+        font-size: 0.65rem;
+    }
+
+    .kpiHeaderValue {
+        font-size: 0.8rem;
+    }
+}
+
+/* ================================================= */
+/* RESPONSIVE: Small laptops / tablets < 1100px      */
+/* ================================================= */
+@media screen and (max-width: 1100px) {
+    /* Stack columns vertically */
+    .kpiMainColumns {
+        flex-direction: column !important;
+    }
+
+    .kpiLeftColumn,
+    .kpiRightColumn {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+
+    /* Overview row: 2 cards per row */
+    .kpiOverviewRow > .sapMFlexItem,
+    .kpiOverviewRow > div {
+        flex: 1 1 calc(50% - 0.75rem);
+        min-width: 200px;
+    }
+
+    /* Bottom row: 1 card per row */
+    .kpiBottomRow > .sapMFlexItem,
+    .kpiBottomRow > div {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    /* Header: wrap items */
+    .kpiHeaderBar {
+        flex-wrap: wrap !important;
+        gap: 0.25rem;
+    }
+
+    .kpiHeaderItem {
+        border-right: none;
+        border-bottom: 1px solid #eaedf0;
+        padding: 0.4rem 0.75rem;
+        flex: 0 0 auto;
+    }
+
+    .kpiHeaderItem:last-child {
+        border-bottom: none;
+    }
+}
+
+/* ================================================= */
+/* RESPONSIVE: Very small screens < 800px            */
+/* ================================================= */
+@media screen and (max-width: 800px) {
+    /* Overview row: 1 card per row */
+    .kpiOverviewRow {
+        flex-direction: column !important;
+    }
+
+    .kpiOverviewRow > .sapMFlexItem,
+    .kpiOverviewRow > div {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    /* NC halves stack */
+    .kpiNCHalf {
+        flex: 1 1 100%;
+    }
+
+    .kpiCard {
+        padding: 0.75rem;
+    }
+
+    .kpiLargeValue {
+        font-size: 1.6rem;
+    }
+
+    .kpiPercentValue {
+        font-size: 1.2rem;
+    }
+}

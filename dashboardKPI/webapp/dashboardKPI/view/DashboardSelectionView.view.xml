@@ -1,0 +1,97 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:l="sap.ui.layout" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:table="sap.ui.table" controllerName="kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.DashboardSelectionView" width="100%" height="100%">
+	
+	<Page id="dashboardSelectionPage" title="{i18n>dashboard.selection.title}" showHeader="false">
+		<content>
+			<!-- Header con filtri -->
+			<Panel id="dashboardFilterPanel" width="100%" height="auto" expandable="false" expanded="true" backgroundDesign="Transparent">
+				<content>
+					<VBox class="sapUiSmallMargin">
+						<!-- Riga filtri -->
+						<HBox alignItems="Center" class="sapUiSmallMarginBottom">
+							<Label text="{i18n>dashboard.filter.project}" class="sapUiSmallMarginEnd" width="100px"/>
+							<ComboBox id="dashboardProjectFilter" width="200px" placeholder="{i18n>dashboard.filter.project.placeholder}" class="sapUiSmallMarginEnd" items="{DashboardModel>/projects}" showSecondaryValues="true" required="true">
+								<core:ListItem key="{DashboardModel>project}" text="{DashboardModel>project}" />
+							</ComboBox>    
+							<Label text="{i18n>dashboard.filter.phase}" class="sapUiSmallMarginBegin sapUiSmallMarginEnd" width="100px"/>
+							<ComboBox id="dashboardPhaseFilter" width="200px" placeholder="{i18n>dashboard.filter.phase.placeholder}" class="sapUiSmallMarginEnd" items="{DashboardModel>/phases}" showSecondaryValues="true" required="true">
+								<core:ListItem key="{DashboardModel>phase}" text="{DashboardModel>phase}" />
+							</ComboBox>  
+							<Label text="{i18n>dashboard.filter.customer}" class="sapUiSmallMarginEnd" width="100px"/>
+							<ComboBox id="dashboardCustomerFilter" width="200px" placeholder="{i18n>dashboard.filter.customer.placeholder}" class="sapUiSmallMarginEnd" items="{DashboardModel>/customers}" showSecondaryValues="true" required="true">
+								<core:ListItem key="{DashboardModel>customer}" text="{DashboardModel>customer}" />
+							</ComboBox>    
+							<Label text="{i18n>dashboard.filter.section}" class="sapUiSmallMarginBegin sapUiSmallMarginEnd" width="100px"/>
+							<ComboBox id="dashboardSectionFilter" width="200px" placeholder="{i18n>dashboard.filter.section.placeholder}" class="sapUiSmallMarginEnd" items="{DashboardModel>/sections}" showSecondaryValues="true" required="true">
+								<core:ListItem key="{DashboardModel>section}" text="{DashboardModel>section}" />
+							</ComboBox>  
+							<!-- Bottoni -->
+							<Label width="50px"/>
+							<Button id="dashboardSearchButton" text="{i18n>dashboard.btn.search}" icon="sap-icon://search" press="onSearchPress" type="Emphasized" class="sapUiSmallMarginEnd"/>
+							<Button id="dashboardClearButton" text="{i18n>dashboard.btn.clear}" icon="sap-icon://clear-filter" press="onClearPress" class="sapUiSmallMarginEnd"/>
+							<Button id="dashboardExpandAllButton" text="Expand All" icon="sap-icon://expand-all" press="onExpandAll" type="Emphasized" class="sapUiSmallMarginEnd"/>
+							<Button id="dashboardCollapseAllButton" text="Collapse All" icon="sap-icon://collapse-all" press="onCollapseAll" type="Emphasized" class="sapUiSmallMarginEnd"/>
+						</HBox>
+					</VBox>
+				</content>
+			</Panel>
+
+			<!-- TreeTable selezione -->
+			<table:TreeTable
+				id="dashboardTable"
+				width="100%"
+				busy="{DashboardModel>/BusyLoadingTable}" 
+				rows="{path: 'DashboardModel>/tableData', parameters: {arrayNames: ['children']}}"
+				selectionMode="Single"
+				ariaLabelledBy="title"
+				rowSelectionChange="onRowSelectionChange"
+				enableColumnReordering="true"
+				selectionBehavior="RowOnly"
+				visibleRowCountMode="Auto"
+				visibleRowCount="15" 
+				rowHeight="40px"
+				expandFirstLevel="true"
+				class="kpmgGDTable">
+				<table:columns>
+					<table:Column width="20%">
+						<Label text="{i18n>mainview.table.project}"/>
+						<table:template>
+							<Text text="{DashboardModel>project}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="15%">
+						<Label text="{i18n>mainview.table.wbe}"/>
+						<table:template>
+							<Text text="{DashboardModel>wbe}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="15%">
+						<Label text="{i18n>dashboard.table.section}"/>
+						<table:template>
+							<Text text="{DashboardModel>section}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="25%">
+						<Label text="{i18n>mainview.table.sfc}"/>
+						<table:template>
+							<Text text="{DashboardModel>sfc}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="15%">
+						<Label text="{i18n>dashboard.table.order}"/>
+						<table:template>
+							<Text text="{DashboardModel>order}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="10%">
+						<Label text="{i18n>dashboard.table.material}"/>
+						<table:template>
+							<Text text="{DashboardModel>material}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+				</table:columns>
+			</table:TreeTable>
+
+		</content>
+	</Page>
+  
+</mvc:View>	
