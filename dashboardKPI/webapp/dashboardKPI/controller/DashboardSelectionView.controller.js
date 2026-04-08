@@ -22,6 +22,7 @@ sap.ui.define([
 			that.getPhases();
 			that.getCustomers();
 			that.getSections();
+			that.loadPodIdValues();
         },
 
         refreshSelection: function () {
@@ -86,6 +87,22 @@ sap.ui.define([
             };
             CommonCallManager.callProxy("POST", url, { plant: plant }, true, successCallback, errorCallback, that);
 		},
+
+		loadPodIdValues: function() {
+            var that = this;
+            var BaseProxyURL = that.getInfoModel().getProperty("/BaseProxyURL");
+            var url = BaseProxyURL + "/db/getPodIdValues";
+            var plant = that.getInfoModel().getProperty("/plant");
+
+            var successCallback = function(response) {
+                that.getInfoModel().setProperty("/podIdValues", response || {});
+            };
+            var errorCallback = function(error) {
+                console.log("Errore caricamento POD_ID_VALUE:", error);
+                that.getInfoModel().setProperty("/podIdValues", {});
+            };
+            CommonCallManager.callProxy("POST", url, { plant: plant }, true, successCallback, errorCallback, that);
+        },
 
 		// Carico dati tabella
         loadData: function () {

@@ -107,7 +107,7 @@ sap.ui.define([
             let params = {
                 plant: plant,
                 project: oSelectedData.project,
-                wbs: oSelectedData.wbs,
+                wbe: oSelectedData.wbe,
                 sfc: oSelectedData.sfc,
                 section: oSelectedData.section,
                 material: oSelectedData.material,
@@ -116,6 +116,7 @@ sap.ui.define([
 
             var successCallback = function(response) {
                 that.oKPIModel.setProperty("/charts", response);
+                that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% Gruppi");
                 // Inizializza gruppi e sfcProgress dal livello default "gruppi"
                 that._applyGruppiLevel("gruppi");
                 // Inizializza scostamento dal livello default "GD"
@@ -144,19 +145,19 @@ sap.ui.define([
             
             setTimeout(function() {
                 that._createPieChart("machineProgressChartContainer", "/charts/chartData/machineProgress",
-                    ["#7a7a7a", "#c0e0c0", "#f0f0f0"], "280px", "250px", "machineProgress");
+                    ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "machineProgress");
                     
                 that._createPieChart("sfcProgressChartContainer", "/charts/chartData/sfcProgress",
-                    ["#7a7a7a", "#f0f0f0", "#d0d0d0"], "280px", "250px", "sfcProgress");
+                    ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "sfcProgress");
                     
-                that._createColumnChart("scostamentoChartContainer", "/charts/chartData/scostamento",
-                    ["#a0a0a0", "#c00000"], "250px", "200px", "scostamento");
+                that._createScostamentoChart("scostamentoChartContainer", "/charts/chartData/scostamento",
+                    "250px", "200px", "scostamento");
                     
                 that._createPieChart("mancantiChartContainer", "/charts/chartData/mancanti",
                     ["#c00000", "#f5a0a0", "#408040"], "280px", "220px", "mancanti");
                     
                 that._createPieChart("evasiChartContainer", "/charts/chartData/evasi",
-                    ["#c00000", "#f5a0a0", "#a0c0a0"], "280px", "220px", "evasi");
+                    ["#2b7d2b", "#e6b800", "#c00000"], "280px", "220px", "evasi");
                     
                 that._createPieChart("ncPresenzaChartContainer", "/charts/chartData/ncPresenza",
                     ["#c00000", "#f5a0a0", "#a0a0a0"], "200px", "180px", "ncPresenza");
@@ -389,6 +390,86 @@ sap.ui.define([
         },
 
         /**
+         * Scostamento chart: two columns - "Pianificato" (single) and "Marcato" (stacked marcate + varianza)
+         */
+        _createScostamentoChart: function(sContainerId, sDataPath, sWidth, sHeight, sChartKey) {
+            var that = this;
+            var oContainer = that.byId(sContainerId);
+            if (!oContainer) return;
+
+            oContainer.removeAllItems();
+
+            var aData = that.oKPIModel.getProperty(sDataPath);
+            if (!aData || aData.length === 0) return;
+
+            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate",value:Y}, {label:"Ore varianza",value:Z}]
+            var pianificate = 0, marcate = 0, varianza = 0;
+            aData.forEach(function(item) {
+                if (item.label === "Ore pianificate") pianificate = item.value;
+                else if (item.label === "Ore marcate") marcate = item.value;
+                else if (item.label === "Ore varianza") varianza = item.value;
+            });
+
+            var oChartData = [
+                { category: "Pianificato", orePianificate: pianificate, oreMarcate: 0, oreVarianza: 0 },
+                { category: "Marcato",     orePianificate: 0,          oreMarcate: marcate, oreVarianza: varianza }
+            ];
+
+            var oChartModel = new JSONModel({ items: oChartData });
+
+            var oDataset = new FlattenedDataset({
+                dimensions: [{
+                    name: "Categoria",
+                    value: "{category}"
+                }],
+                measures: [
+                    { name: "Ore pianificate", value: "{orePianificate}" },
+                    { name: "Ore marcate",     value: "{oreMarcate}" },
+                    { name: "Ore varianza",    value: "{oreVarianza}" }
+                ],
+                data: { path: "/items" }
+            });
+
+            var oVizFrame = new VizFrame({
+                width: sWidth,
+                height: sHeight,
+                vizType: "stacked_column",
+                uiConfig: { applicationSet: "fiori" },
+                dataset: oDataset
+            });
+
+            oVizFrame.setModel(oChartModel);
+
+            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Ore pianificate", "Ore marcate", "Ore varianza"] }));
+            oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
+
+            oVizFrame.setVizProperties({
+                plotArea: {
+                    colorPalette: ["#a0a0a0", "#a0a0a0", "#c00000"],
+                    dataLabel: {
+                        visible: true,
+                        style: { fontSize: "0.7rem" }
+                    },
+                    drawingEffect: "normal"
+                },
+                valueAxis: {
+                    title: { visible: false }
+                },
+                categoryAxis: {
+                    title: { visible: false }
+                },
+                legend: { visible: true },
+                title: { visible: false },
+                interaction: {
+                    selectability: { mode: "single" }
+                }
+            });
+
+            oContainer.addItem(oVizFrame);
+            that._chartRefs[sChartKey] = oVizFrame;
+        },
+
+        /**
          * Simple horizontal bar chart using HTML - always shows all categories even with value 0
          */
         _createSimpleBarChart: function(sContainerId, sDataPath, aColors) {
@@ -475,6 +556,8 @@ sap.ui.define([
         onSegmentedButtonSelect: function(oEvent) {
             var that = this;
             var sKey = oEvent.getParameter("key");
+            var labelMap = { "gruppi": "% Gruppi", "aggr": "% Aggregati", "macr": "% Macroaggregati" };
+            that.oKPIModel.setProperty("/charts/gruppiLevelLabel", labelMap[sKey] || "% Gruppi");
             that._applyGruppiLevel(sKey);
             // Re-render the SFC chart
             if (that._chartRefs["sfcProgress"]) {
@@ -482,7 +565,7 @@ sap.ui.define([
                 delete that._chartRefs["sfcProgress"];
             }
             that._createPieChart("sfcProgressChartContainer", "/charts/chartData/sfcProgress",
-                ["#7a7a7a", "#f0f0f0", "#d0d0d0"], "280px", "250px", "sfcProgress");
+                ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "sfcProgress");
         },
 
         onScostamentoSegmentedButtonSelect: function(oEvent) {
@@ -494,8 +577,8 @@ sap.ui.define([
                 that._chartRefs["scostamento"].destroy();
                 delete that._chartRefs["scostamento"];
             }
-            that._createColumnChart("scostamentoChartContainer", "/charts/chartData/scostamento",
-                ["#a0a0a0", "#c00000"], "250px", "200px", "scostamento");
+            that._createScostamentoChart("scostamentoChartContainer", "/charts/chartData/scostamento",
+                "250px", "200px", "scostamento");
         },
 
         _applyGruppiLevel: function(sKey) {
@@ -622,8 +705,8 @@ sap.ui.define([
         onMachineProgressDetails: function() {
             var oResponse = this.oKPIModel.getProperty("/charts/details/machineProgress");
             if (oResponse) {
-                this._createDetailDialog(
-                    "Machine Progress - Stato di completamento (gerarchia ore)",
+                this._createTreeTableDetailDialog(
+                    "Machine Progress - Stato di completamento",
                     oResponse,
                     "MachineDetails"
                 );
@@ -636,13 +719,63 @@ sap.ui.define([
             var oSegBtn = this.byId("gruppiSegmentedButton");
             var sLevel = oSegBtn ? oSegBtn.getSelectedKey() : "gruppi";
             var oResponse = this.oKPIModel.getProperty("/charts/details/sfcProgress/" + sLevel);
-            if (oResponse) {
-                this._createDetailDialog(
-                    "SFC Gruppi Progress - Dettaglio",
-                    oResponse,
-                    "SFCDetails"
-                );
-            }
+            if (!oResponse) return;
+
+            // Tab 1: Riepilogo ordini
+            var aOrderCols = oResponse.columns;
+            var aOrderData = oResponse.data;
+            var oOrderModel = new JSONModel({ items: aOrderData });
+            var oOrderTable = new Table({
+                columns: aOrderCols.map(function(col) {
+                    return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+                }),
+                growing: true, growingThreshold: 50, alternateRowColors: true, fixedLayout: false
+            });
+            oOrderTable.setModel(oOrderModel, "SFCOrders");
+            oOrderTable.bindItems({
+                path: "SFCOrders>/items",
+                template: new ColumnListItem({
+                    cells: aOrderCols.map(function(col) { return new Text({ text: "{SFCOrders>" + col.key + "}" }); })
+                })
+            });
+
+            // Tab 2: Tutte le operazioni
+            var aOpsCols = oResponse.opsColumns;
+            var aOpsData = oResponse.opsData;
+            var oOpsModel = new JSONModel({ items: aOpsData });
+            var oOpsTable = new Table({
+                columns: aOpsCols.map(function(col) {
+                    return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+                }),
+                growing: true, growingThreshold: 50, alternateRowColors: true, fixedLayout: false
+            });
+            oOpsTable.setModel(oOpsModel, "SFCOps");
+            oOpsTable.bindItems({
+                path: "SFCOps>/items",
+                template: new ColumnListItem({
+                    cells: aOpsCols.map(function(col) { return new Text({ text: "{SFCOps>" + col.key + "}" }); })
+                })
+            });
+
+            var oIconTabBar = new IconTabBar({
+                expandable: false,
+                items: [
+                    new IconTabFilter({ text: "Ordini", content: [oOrderTable] }),
+                    new IconTabFilter({ text: "Operazioni", content: [oOpsTable] })
+                ]
+            });
+
+            var oDialog = new Dialog({
+                title: "SFC Gruppi Progress - Dettaglio",
+                contentWidth: "90%",
+                contentHeight: "70%",
+                resizable: true,
+                draggable: true,
+                content: [oIconTabBar],
+                endButton: new Button({ text: "Chiudi", press: function() { oDialog.close(); } }),
+                afterClose: function() { oDialog.destroy(); }
+            });
+            oDialog.open();
         },
 
         // ========== 2.2.3 Scostamento Details ==========
@@ -652,7 +785,7 @@ sap.ui.define([
             var sWorkcenter = oSegBtn ? oSegBtn.getSelectedKey() : "GD";
             var oResponse = this.oKPIModel.getProperty("/charts/details/scostamento/" + sWorkcenter);
             if (oResponse) {
-                this._createDetailDialog(
+                this._createTreeTableDetailDialog(
                     "Scostamento - Dettaglio (netto varianza)",
                     oResponse,
                     "ScostDetails"
@@ -664,8 +797,9 @@ sap.ui.define([
 
         onMancantiDetails: function() {
             var oParams = this._getBaseParams();
+            var sPodId = this.getInfoModel().getProperty("/podIdValues/MANCANTI_REPORT") || "MANCANTI_REPORT";
             var sBaseUrl = window.location.href.split("?")[0];
-            var sMancantiReportUrl = sBaseUrl + "?POD_ID=MANCANTI_REPORT"
+            var sMancantiReportUrl = sBaseUrl + "?POD_ID=" + encodeURIComponent(sPodId)
                 + "&PROJECT=" + encodeURIComponent(oParams.project || "")
                 + "&WBE=" + encodeURIComponent(oParams.wbe || "")
                 + "&SECTION=" + encodeURIComponent(oParams.section || "")
@@ -690,8 +824,9 @@ sap.ui.define([
 
         onNCDetails: function() {
             var oParams = this._getBaseParams();
+            var sPodId = this.getInfoModel().getProperty("/podIdValues/DEFECT_REPORT") || "DEFECT_REPORT";
             var sBaseUrl = window.location.href.split("?")[0];
-            var sDefectReportUrl = sBaseUrl + "?POD_ID=DEFECT_REPORT"
+            var sDefectReportUrl = sBaseUrl + "?POD_ID=" + encodeURIComponent(sPodId)
                 + "&PROJECT=" + encodeURIComponent(oParams.project || "")
                 + "&WBE=" + encodeURIComponent(oParams.wbe || "")
                 + "&SECTION=" + encodeURIComponent(oParams.section || "")
@@ -726,6 +861,12 @@ sap.ui.define([
                 // Popola campi parent
                 aParentCols.forEach(function(col) {
                     oRow[col.key] = parent[col.key] || "";
+                });
+                // Popola anche campi child presenti nel parent (totali cumulativi)
+                aChildCols.forEach(function(col) {
+                    if (parent[col.key] !== undefined) {
+                        oRow[col.key] = parent[col.key];
+                    }
                 });
                 // Children
                 oRow.children = (parent.children || []).map(function(child) {

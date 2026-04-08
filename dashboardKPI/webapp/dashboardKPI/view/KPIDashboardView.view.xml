@@ -10,10 +10,10 @@
 						<content>
 							<HBox justifyContent="SpaceBetween" alignItems="Center" width="100%" class="sapUiSmallMargin kpiHeaderBar">
 								<VBox class="kpiHeaderItem">								<Label text="{i18n>dashboard.header.date}" design="Bold" class="kpiHeaderLabel"/>
-								<Text text="{KPIModel>/header/currentDate}" class="kpiHeaderValue"/>
+								<Text text="{KPIModel>/header/currentDate}" class="kpiHeaderValue kpiHeaderDateRed"/>
 							</VBox>
 							<VBox class="kpiHeaderItem">									<Label text="{i18n>dashboard.header.actual}" design="Bold" class="kpiHeaderLabel"/>
-									<Text text="{KPIModel>/header/actual}" class="kpiHeaderValue kpiHeaderDateRed"/>
+									<Text text="{KPIModel>/header/actual}" class="kpiHeaderValue"/>
 								</VBox>
 								<VBox class="kpiHeaderItem">
 									<Label text="{i18n>dashboard.header.project}" design="Bold" class="kpiHeaderLabel"/>
@@ -22,10 +22,6 @@
 								<VBox class="kpiHeaderItem">
 									<Label text="{i18n>dashboard.header.wbe}" design="Bold" class="kpiHeaderLabel"/>
 									<Text text="{KPIModel>/header/wbe}" class="kpiHeaderValue"/>
-								</VBox>
-								<VBox class="kpiHeaderItem">
-									<Label text="{i18n>dashboard.header.section}" design="Bold" class="kpiHeaderLabel"/>
-									<Text text="{KPIModel>/header/section}" class="kpiHeaderValue"/>
 								</VBox>
 								<VBox class="kpiHeaderItem">
 									<Label text="{i18n>dashboard.header.sfc}" design="Bold" class="kpiHeaderLabel"/>
@@ -63,7 +59,7 @@
 														<SegmentedButtonItem key="macr" text="MACR"/>
 													</items>
 												</SegmentedButton>
-												<Label text="% Gruppi" design="Bold" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
+												<Label text="{KPIModel>/charts/gruppiLevelLabel}" design="Bold" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
 												<l:Grid defaultSpan="L6 M6 S12">
 													<VBox>
 														<Label text="{i18n>dashboard.gruppi.daIniziare}" class="kpiSmallLabel"/>
@@ -144,8 +140,8 @@
 												<HBox class="sapUiSmallMarginTop">
 													<!-- Gruppi con NC -->
 													<VBox class="kpiNCHalf sapUiSmallMarginEnd">
-														<Label text="{i18n>dashboard.nc.gruppiConNC}" design="Bold"/>
-														<Text text="{KPIModel>/charts/nonConformita/gruppiConNC}" class="kpiLargeValue sapUiTinyMarginBottom"/>
+															<Label text="{i18n>dashboard.nc.ordiniConNC}" design="Bold"/>
+															<Text text="{KPIModel>/charts/nonConformita/ordiniConNC}" class="kpiLargeValue sapUiTinyMarginBottom"/>
 														<Label text="{i18n>dashboard.nc.presenzaNC}" design="Bold" class="sapUiSmallMarginTop"/>
 														<VBox id="ncPresenzaChartContainer" width="100%" alignItems="Center"/>
 														<Link text="{i18n>dashboard.link.details}" press="onNCDetails" class="sapUiSmallMarginTop"/>
