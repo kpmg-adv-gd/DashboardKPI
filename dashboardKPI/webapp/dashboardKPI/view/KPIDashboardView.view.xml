@@ -1,6 +1,9 @@
 <mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:l="sap.ui.layout" xmlns:f="sap.ui.layout.form" xmlns:core="sap.ui.core" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:viz="sap.viz.ui5.controls" xmlns:vizdata="sap.viz.ui5.data" controllerName="kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.KPIDashboardView" width="100%" height="100%">
 	
 	<Page id="kpiDashboardPage" title="{i18n>dashboard.kpi.title}" showNavButton="true" navButtonPress="onNavBack" class="kpiDashboardPage">
+		<headerContent>
+			<Button icon="sap-icon://pdf-attachment" text="Esporta PDF" press="onDownloadPDF" type="Emphasized"/>
+		</headerContent>
 		<content>
 			<ScrollContainer height="100%" width="100%" horizontal="false" vertical="true">
 				<VBox class="sapUiMediumMargin">
@@ -8,7 +11,7 @@
 					<!-- Header Info Bar -->
 					<Panel class="kpiHeaderPanel sapUiSmallMarginBottom" backgroundDesign="Solid">
 						<content>
-							<HBox justifyContent="SpaceBetween" alignItems="Center" width="100%" class="sapUiSmallMargin kpiHeaderBar">
+							<HBox justifyContent="Start" alignItems="Start" wrap="Wrap" width="100%" class="kpiHeaderBar">
 								<VBox class="kpiHeaderItem">								<Label text="{i18n>dashboard.header.date}" design="Bold" class="kpiHeaderLabel"/>
 								<Text text="{KPIModel>/header/currentDate}" class="kpiHeaderValue kpiHeaderDateRed"/>
 							</VBox>
@@ -85,7 +88,7 @@
 											
 											<!-- SFC Gruppi Progress Card -->
 											<VBox class="kpiCard sapUiSmallMarginEnd" alignItems="Center">
-												<Label text="{i18n>dashboard.chart.sfcProgress}" design="Bold" class="sapUiTinyMarginBottom"/>
+												<Label text="{KPIModel>/charts/sfcProgressLabel}" design="Bold" class="sapUiTinyMarginBottom"/>
 												<VBox id="sfcProgressChartContainer" width="100%" alignItems="Center"/>
 												<Link text="{i18n>dashboard.link.details}" press="onSFCProgressDetails" class="sapUiSmallMarginTop"/>
 											</VBox>

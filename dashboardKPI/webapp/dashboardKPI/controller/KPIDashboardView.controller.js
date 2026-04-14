@@ -17,10 +17,11 @@ sap.ui.define([
     "sap/m/IconTabFilter",
     "sap/ui/table/TreeTable",
     "sap/ui/table/Column",
-    "sap/ui/table/RowSettings"
+    "sap/ui/table/RowSettings",
+    "sap/ui/export/Spreadsheet"
 ], function (jQuery, JSONModel, BaseController, CommonCallManager, VizFrame, FlattenedDataset, FeedItem,
              Dialog, Button, Table, Column, ColumnListItem, Text, Label, IconTabBar, IconTabFilter,
-             TreeTable, UIColumn, RowSettings) {
+             TreeTable, UIColumn, RowSettings, Spreadsheet) {
 	"use strict";
 
 	return BaseController.extend("kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.KPIDashboardView", {
@@ -117,6 +118,7 @@ sap.ui.define([
             var successCallback = function(response) {
                 that.oKPIModel.setProperty("/charts", response);
                 that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% Gruppi");
+                that.oKPIModel.setProperty("/charts/sfcProgressLabel", "SFC Gruppi Progress");
                 // Inizializza gruppi e sfcProgress dal livello default "gruppi"
                 that._applyGruppiLevel("gruppi");
                 // Inizializza scostamento dal livello default "GD"
@@ -402,17 +404,22 @@ sap.ui.define([
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
 
-            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate",value:Y}, {label:"Ore varianza",value:Z}]
-            var pianificate = 0, marcate = 0, varianza = 0;
+            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate"/"Ore completate",value:Y}, {label:"Ore varianza",value:Z}]
+            var pianificate = 0, secondValue = 0, varianza = 0;
+            var secondLabel = "Ore marcate";
             aData.forEach(function(item) {
                 if (item.label === "Ore pianificate") pianificate = item.value;
-                else if (item.label === "Ore marcate") marcate = item.value;
+                else if (item.label === "Ore marcate" || item.label === "Ore completate") {
+                    secondValue = item.value;
+                    secondLabel = item.label;
+                }
                 else if (item.label === "Ore varianza") varianza = item.value;
             });
 
+            var secondCategory = secondLabel === "Ore completate" ? "Completato" : "Marcato";
             var oChartData = [
-                { category: "Pianificato", orePianificate: pianificate, oreMarcate: 0, oreVarianza: 0 },
-                { category: "Marcato",     orePianificate: 0,          oreMarcate: marcate, oreVarianza: varianza }
+                { category: "Pianificato",    orePianificate: pianificate, oreSecond: 0,           oreVarianza: 0 },
+                { category: secondCategory,   orePianificate: 0,          oreSecond: secondValue,  oreVarianza: varianza }
             ];
 
             var oChartModel = new JSONModel({ items: oChartData });
@@ -424,7 +431,7 @@ sap.ui.define([
                 }],
                 measures: [
                     { name: "Ore pianificate", value: "{orePianificate}" },
-                    { name: "Ore marcate",     value: "{oreMarcate}" },
+                    { name: secondLabel,       value: "{oreSecond}" },
                     { name: "Ore varianza",    value: "{oreVarianza}" }
                 ],
                 data: { path: "/items" }
@@ -440,7 +447,7 @@ sap.ui.define([
 
             oVizFrame.setModel(oChartModel);
 
-            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Ore pianificate", "Ore marcate", "Ore varianza"] }));
+            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Ore pianificate", secondLabel, "Ore varianza"] }));
             oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
 
             oVizFrame.setVizProperties({
@@ -557,7 +564,9 @@ sap.ui.define([
             var that = this;
             var sKey = oEvent.getParameter("key");
             var labelMap = { "gruppi": "% Gruppi", "aggr": "% Aggregati", "macr": "% Macroaggregati" };
+            var sfcLabelMap = { "gruppi": "SFC Gruppi Progress", "aggr": "SFC Aggregati Progress", "macr": "SFC Macroaggregati Progress" };
             that.oKPIModel.setProperty("/charts/gruppiLevelLabel", labelMap[sKey] || "% Gruppi");
+            that.oKPIModel.setProperty("/charts/sfcProgressLabel", sfcLabelMap[sKey] || "SFC Gruppi Progress");
             that._applyGruppiLevel(sKey);
             // Re-render the SFC chart
             if (that._chartRefs["sfcProgress"]) {
@@ -616,6 +625,27 @@ sap.ui.define([
                 sfc: oSelectedData.sfc,
                 section: oSelectedData.section
             };
+        },
+
+        // ========== HELPER: Excel Export ==========
+
+        _exportToExcel: function(aColumns, aData, sFileName) {
+            var aExportColumns = aColumns.filter(function(col) {
+                return !col.isIcon;
+            }).map(function(col) {
+                return { label: col.label, property: col.key, type: "String" };
+            });
+
+            var oSettings = {
+                workbook: { columns: aExportColumns },
+                dataSource: aData,
+                fileName: sFileName || "Export.xlsx"
+            };
+
+            var oSheet = new Spreadsheet(oSettings);
+            oSheet.build().finally(function() {
+                oSheet.destroy();
+            });
         },
 
         // ========== HELPER: Create detail table dialog ==========
@@ -683,6 +713,7 @@ sap.ui.define([
                 template: oTemplate
             });
 
+            var that = this;
             var oDialog = new Dialog({
                 title: sTitle,
                 contentWidth: "90%",
@@ -690,6 +721,13 @@ sap.ui.define([
                 resizable: true,
                 draggable: true,
                 content: [oTable],
+                beginButton: new Button({
+                    icon: "sap-icon://excel-attachment",
+                    text: "Esporta Excel",
+                    press: function() {
+                        that._exportToExcel(aColumns, aData, sTitle + ".xlsx");
+                    }
+                }),
                 endButton: new Button({
                     text: "Chiudi",
                     press: function() { oDialog.close(); }
@@ -704,13 +742,46 @@ sap.ui.define([
 
         onMachineProgressDetails: function() {
             var oResponse = this.oKPIModel.getProperty("/charts/details/machineProgress");
-            if (oResponse) {
-                this._createTreeTableDetailDialog(
-                    "Machine Progress - Stato di completamento",
-                    oResponse,
-                    "MachineDetails"
-                );
-            }
+            if (!oResponse) return;
+
+            // Build summary header "Visione per tipologia"
+            var oSummary = oResponse.summary || {};
+            var oSummaryPanel = new sap.m.Panel({
+                headerText: "Visione per tipologia",
+                backgroundDesign: "Solid",
+                content: [
+                    new sap.m.Table({
+                        columns: [
+                            new Column({ header: new Label({ text: "# Macroaggregati", design: "Bold" }), hAlign: "Center" }),
+                            new Column({ header: new Label({ text: "# Macroaggregati completati", design: "Bold" }), hAlign: "Center" }),
+                            new Column({ header: new Label({ text: "# Aggregati", design: "Bold" }), hAlign: "Center" }),
+                            new Column({ header: new Label({ text: "# Aggregati completati", design: "Bold" }), hAlign: "Center" }),
+                            new Column({ header: new Label({ text: "# Gruppi", design: "Bold" }), hAlign: "Center" }),
+                            new Column({ header: new Label({ text: "# Gruppi Completati", design: "Bold" }), hAlign: "Center" })
+                        ],
+                        items: [
+                            new ColumnListItem({
+                                cells: [
+                                    new Text({ text: String(oSummary.macroaggregati || 0) }),
+                                    new Text({ text: String(oSummary.macroaggregatiCompletati || 0) }),
+                                    new Text({ text: String(oSummary.aggregati || 0) }),
+                                    new Text({ text: String(oSummary.aggregatiCompletati || 0) }),
+                                    new Text({ text: String(oSummary.gruppi || 0) }),
+                                    new Text({ text: String(oSummary.gruppiCompletati || 0) })
+                                ]
+                            })
+                        ]
+                    })
+                ]
+            });
+            oSummaryPanel.addStyleClass("sapUiSmallMarginBottom");
+
+            this._createTreeTableDetailDialog(
+                "Machine Progress - Stato di completamento",
+                oResponse,
+                "MachineDetails",
+                [oSummaryPanel]
+            );
         },
 
         // ========== 2.2.2 SFC Gruppi Progress Details ==========
@@ -760,18 +831,32 @@ sap.ui.define([
             var oIconTabBar = new IconTabBar({
                 expandable: false,
                 items: [
-                    new IconTabFilter({ text: "Ordini", content: [oOrderTable] }),
-                    new IconTabFilter({ text: "Operazioni", content: [oOpsTable] })
+                    new IconTabFilter({ key: "ordini", text: "Ordini", content: [oOrderTable] }),
+                    new IconTabFilter({ key: "operazioni", text: "Operazioni", content: [oOpsTable] })
                 ]
             });
 
+            var that = this;
+            var sDialogTitle = (this.oKPIModel.getProperty("/charts/sfcProgressLabel") || "SFC Gruppi Progress") + " - Dettaglio";
             var oDialog = new Dialog({
-                title: "SFC Gruppi Progress - Dettaglio",
+                title: sDialogTitle,
                 contentWidth: "90%",
                 contentHeight: "70%",
                 resizable: true,
                 draggable: true,
                 content: [oIconTabBar],
+                beginButton: new Button({
+                    icon: "sap-icon://excel-attachment",
+                    text: "Esporta Excel",
+                    press: function() {
+                        var sSelectedKey = oIconTabBar.getSelectedKey();
+                        if (sSelectedKey === "operazioni") {
+                            that._exportToExcel(aOpsCols, aOpsData, sDialogTitle + " - Operazioni.xlsx");
+                        } else {
+                            that._exportToExcel(aOrderCols, aOrderData, sDialogTitle + " - Ordini.xlsx");
+                        }
+                    }
+                }),
                 endButton: new Button({ text: "Chiudi", press: function() { oDialog.close(); } }),
                 afterClose: function() { oDialog.destroy(); }
             });
@@ -847,7 +932,7 @@ sap.ui.define([
             }
         },
 
-        _createTreeTableDetailDialog: function(sTitle, oResponse, sModelName) {
+        _createTreeTableDetailDialog: function(sTitle, oResponse, sModelName, aHeaderContent) {
             var aParentCols = oResponse.parentColumns;
             var aChildCols = oResponse.childColumns;
             var aTreeData = oResponse.data;
@@ -889,6 +974,27 @@ sap.ui.define([
 
             // Crea colonne TreeTable
             var aTableColumns = allColumns.map(function(col) {
+                if (col.isIcon) {
+                    return new UIColumn({
+                        label: new Label({ text: col.label }),
+                        template: new sap.ui.core.Icon({
+                            src: {
+                                path: sModelName + ">" + col.key,
+                                formatter: function(val) {
+                                    return val === "alert" ? "sap-icon://alert" : "";
+                                }
+                            },
+                            color: "#cc0000",
+                            visible: {
+                                path: sModelName + ">" + col.key,
+                                formatter: function(val) {
+                                    return val === "alert";
+                                }
+                            }
+                        }),
+                        width: col.width || "auto"
+                    });
+                }
                 return new UIColumn({
                     label: new Label({ text: col.label }),
                     template: new Text({ text: "{" + sModelName + ">" + col.key + "}", wrapping: false }),
@@ -911,13 +1017,41 @@ sap.ui.define([
                 parameters: { arrayNames: ["children"] }
             });
 
+            // Flatten tree data for Excel export (parent + children)
+            var aFlatData = [];
+            aTreeData.forEach(function(parent) {
+                var oParentRow = {};
+                allColumns.forEach(function(col) {
+                    if (parent[col.key] !== undefined) oParentRow[col.key] = parent[col.key];
+                    else oParentRow[col.key] = "";
+                });
+                aFlatData.push(oParentRow);
+                (parent.children || []).forEach(function(child) {
+                    var oChildRow = {};
+                    allColumns.forEach(function(col) {
+                        oChildRow[col.key] = child[col.key] !== undefined ? child[col.key] : "";
+                    });
+                    aFlatData.push(oChildRow);
+                });
+            });
+
+            var aDialogContent = (aHeaderContent || []).concat([oTreeTable]);
+
+            var that = this;
             var oDialog = new Dialog({
                 title: sTitle,
                 contentWidth: "95%",
                 contentHeight: "70%",
                 resizable: true,
                 draggable: true,
-                content: [oTreeTable],
+                content: aDialogContent,
+                beginButton: new Button({
+                    icon: "sap-icon://excel-attachment",
+                    text: "Esporta Excel",
+                    press: function() {
+                        that._exportToExcel(allColumns, aFlatData, sTitle + ".xlsx");
+                    }
+                }),
                 endButton: new Button({
                     text: "Chiudi",
                     press: function() { oDialog.close(); }
@@ -950,6 +1084,56 @@ sap.ui.define([
                     "ResponsabilitaVarianzeDetails"
                 );
             }
+        },
+
+        // ========== PDF EXPORT (native print to PDF, no external libs) ==========
+
+        onDownloadPDF: function() {
+            var that = this;
+            var oPage = that.byId("kpiDashboardPage");
+            var oDomRef = oPage && oPage.getDomRef ? oPage.getDomRef() : null;
+
+            if (!oDomRef) {
+                sap.m.MessageToast.show("Impossibile generare il PDF.");
+                return;
+            }
+
+            // Clone only the dashboard page to avoid printing POD selection/shell content.
+            var oPrintRoot = document.createElement("div");
+            oPrintRoot.id = "kpiPrintRoot";
+
+            var oClone = oDomRef.cloneNode(true);
+            var oRect = oDomRef.getBoundingClientRect();
+            oClone.style.width = Math.max(1, Math.round(oRect.width)) + "px";
+            oClone.style.maxWidth = "none";
+            oClone.style.margin = "0 auto";
+
+            oPrintRoot.appendChild(oClone);
+            document.body.appendChild(oPrintRoot);
+            document.body.classList.add("kpi-print-mode");
+
+            var bCleaned = false;
+            var fnCleanup = function() {
+                if (bCleaned) return;
+                bCleaned = true;
+                document.body.classList.remove("kpi-print-mode");
+                if (oPrintRoot && oPrintRoot.parentNode) {
+                    oPrintRoot.parentNode.removeChild(oPrintRoot);
+                }
+            };
+
+            window.addEventListener("afterprint", function onAfterPrint() {
+                window.removeEventListener("afterprint", onAfterPrint);
+                fnCleanup();
+            });
+
+            // Let layout settle before opening print dialog.
+            setTimeout(function() {
+                window.print();
+            }, 150);
+
+            // Fallback cleanup in case afterprint does not fire.
+            setTimeout(fnCleanup, 15000);
         },
 
         onExit: function() {

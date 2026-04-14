@@ -21,12 +21,19 @@
 
 .kpiHeaderBar {
     flex-wrap: wrap;
+    justify-content: flex-start !important;
+    align-content: flex-start;
+    gap: 0.2rem 0.35rem;
+    padding: 0.25rem 0.4rem;
+    box-sizing: border-box;
 }
 
 .kpiHeaderItem {
-    padding: 0.35rem 0.75rem;
+    padding: 0.25rem 0.5rem;
     border-right: 1px solid #eaedf0;
-    min-width: 70px;
+    min-width: 0;
+    flex: 1 1 160px;
+    max-width: 260px;
 }
 
 .kpiHeaderItem:last-child {
@@ -45,6 +52,9 @@
     font-size: 0.8rem;
     font-weight: 600;
     color: #1a1a2e;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
 }
 
 .kpiHeaderDateRed {
@@ -228,14 +238,14 @@
     flex-wrap: wrap;
 }
 
-/* Left column takes ~65%, right ~35% */
+/* Left column takes ~75%, right ~25% */
 .kpiLeftColumn {
-    flex: 65 1 0 !important;
+    flex: 75 1 0 !important;
     min-width: 0;
 }
 
 .kpiRightColumn {
-    flex: 35 1 0 !important;
+    flex: 25 1 0 !important;
     min-width: 0;
 }
 
@@ -261,10 +271,10 @@
 /* ================================================= */
 @media screen and (max-width: 1400px) {
     .kpiLeftColumn {
-        flex: 60 1 0 !important;
+        flex: 70 1 0 !important;
     }
     .kpiRightColumn {
-        flex: 40 1 0 !important;
+        flex: 30 1 0 !important;
     }
 
     .kpiOverviewRow > .sapMFlexItem,
@@ -274,8 +284,9 @@
     }
 
     .kpiHeaderItem {
-        padding: 0.5rem 0.8rem;
-        min-width: 80px;
+        padding: 0.22rem 0.45rem;
+        flex-basis: 145px;
+        max-width: 220px;
     }
 
     .kpiHeaderLabel {
@@ -319,14 +330,15 @@
     /* Header: wrap items */
     .kpiHeaderBar {
         flex-wrap: wrap !important;
-        gap: 0.25rem;
+        gap: 0.2rem 0.3rem;
     }
 
     .kpiHeaderItem {
         border-right: none;
         border-bottom: 1px solid #eaedf0;
-        padding: 0.4rem 0.75rem;
-        flex: 0 0 auto;
+        padding: 0.28rem 0.45rem;
+        flex: 1 1 calc(50% - 0.3rem);
+        max-width: none;
     }
 
     .kpiHeaderItem:last-child {
@@ -364,5 +376,123 @@
 
     .kpiPercentValue {
         font-size: 1.2rem;
+    }
+}
+
+/* ================================================= */
+/* PRINT STYLES - Native PDF export                   */
+/* ================================================= */
+@media print {
+    body.kpi-print-mode > * {
+        display: none !important;
+    }
+
+    body.kpi-print-mode #kpiPrintRoot {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    body.kpi-print-mode * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    @page {
+        size: A3 landscape;
+        margin: 8mm;
+    }
+
+    body.kpi-print-mode,
+    body.kpi-print-mode #kpiPrintRoot,
+    body.kpi-print-mode .sapMPage,
+    body.kpi-print-mode .sapMPageBgSolid {
+        background: white !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    /* Hide internal page bars/buttons in print */
+    body.kpi-print-mode .sapMPageHeader,
+    body.kpi-print-mode .sapMIBar,
+    body.kpi-print-mode .sapMBar,
+    body.kpi-print-mode .sapMPageSubHeader,
+    body.kpi-print-mode .sapMBtn,
+    body.kpi-print-mode .sapMSegB,
+    body.kpi-print-mode .sapMDialog,
+    body.kpi-print-mode .sapMDialogBlockLayer {
+        display: none !important;
+    }
+
+    /* Allow scroll containers to show full content */
+    body.kpi-print-mode .sapMScrollCont,
+    body.kpi-print-mode .sapMScrollContScroll,
+    body.kpi-print-mode .sapMPage > section,
+    body.kpi-print-mode .sapMPageEnableScrolling > section {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    body.kpi-print-mode .kpiMainColumns {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 6mm !important;
+    }
+
+    body.kpi-print-mode .kpiLeftColumn,
+    body.kpi-print-mode .kpiRightColumn {
+        min-width: 0 !important;
+        width: auto !important;
+    }
+
+    body.kpi-print-mode .kpiLeftColumn {
+        flex: 72 1 0 !important;
+    }
+
+    body.kpi-print-mode .kpiRightColumn {
+        flex: 28 1 0 !important;
+    }
+
+    body.kpi-print-mode .kpiBox,
+    body.kpi-print-mode .kpiSectionPanel,
+    body.kpi-print-mode .kpiCard,
+    body.kpi-print-mode .kpiHeaderPanel,
+    body.kpi-print-mode .kpiVarianzeBox {
+        box-shadow: none !important;
+        border: 1px solid #d9d9d9 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 8mm !important;
+    }
+
+    body.kpi-print-mode .kpiSectionPanel > .sapMPanelContent {
+        padding: 0.45rem !important;
+    }
+
+    body.kpi-print-mode .kpiCard {
+        padding: 0.55rem !important;
+    }
+
+    body.kpi-print-mode .kpiOverviewRow,
+    body.kpi-print-mode .kpiBottomRow {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 4mm !important;
+    }
+
+    body.kpi-print-mode [id$="ChartContainer"],
+    body.kpi-print-mode .sapVizFrame,
+    body.kpi-print-mode .viz-vizframe,
+    body.kpi-print-mode canvas,
+    body.kpi-print-mode svg {
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
     }
 }
