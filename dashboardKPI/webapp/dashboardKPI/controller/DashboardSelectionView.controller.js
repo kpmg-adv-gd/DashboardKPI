@@ -186,6 +186,30 @@ sap.ui.define([
 			}
 		},
 		
+		// Formatter Status icon
+		getStatusIcon: function(executionStatus) {
+			switch (executionStatus) {
+				case "ACTIVE":
+					return "sap-icon://lateness";
+				case "COMPLETED":
+					return "sap-icon://complete";
+				default:
+					return "sap-icon://decline";
+			}
+		},
+
+		// Formatter Status color
+		getStatusColor: function(executionStatus) {
+			switch (executionStatus) {
+				case "ACTIVE":
+					return "#d19e13";
+				case "COMPLETED":
+					return "green";
+				default:
+					return "red";
+			}
+		},
+
 		// Navigazione alla KPI Dashboard
 		navToKPIDashboardView: function() {
 		    var that = this;

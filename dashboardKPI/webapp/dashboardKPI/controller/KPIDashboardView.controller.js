@@ -117,12 +117,12 @@ sap.ui.define([
 
             var successCallback = function(response) {
                 that.oKPIModel.setProperty("/charts", response);
-                that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% Gruppi");
-                that.oKPIModel.setProperty("/charts/sfcProgressLabel", "SFC Gruppi Progress");
-                // Inizializza gruppi e sfcProgress dal livello default "gruppi"
-                that._applyGruppiLevel("gruppi");
-                // Inizializza scostamento dal livello default "GD"
-                that._applyScostamentoLevel("GD");
+                that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% All SFC");
+                that.oKPIModel.setProperty("/charts/sfcProgressLabel", "SFC All Progress");
+                // Inizializza gruppi e sfcProgress dal livello default "all"
+                that._applyGruppiLevel("all");
+                // Inizializza scostamento dal livello default "All"
+                that._applyScostamentoLevel("All");
                 setTimeout(function() {
                     that.renderCharts();
                 }, 500);
@@ -136,6 +136,16 @@ sap.ui.define([
                 }, 500);
             };
 
+            // Compare caricamento in corso
+            if (!that._oBusyDialog) {
+                that._oBusyDialog = new sap.m.BusyDialog({
+                    title: "Attendere",
+                    text: "Caricamento della dashboard in corso...",
+                    showCancelButton: false
+                });
+            }
+            that._oBusyDialog.open();
+
             CommonCallManager.callProxy("POST", url, params, true, successCallback, errorCallback, that);
         },
 
@@ -147,36 +157,42 @@ sap.ui.define([
             
             setTimeout(function() {
                 that._createPieChart("machineProgressChartContainer", "/charts/chartData/machineProgress",
-                    ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "machineProgress");
+                      ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "machineProgress");
                     
                 that._createPieChart("sfcProgressChartContainer", "/charts/chartData/sfcProgress",
-                    ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "sfcProgress");
+                    ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "sfcProgress");
                     
                 that._createScostamentoChart("scostamentoChartContainer", "/charts/chartData/scostamento",
                     "250px", "200px", "scostamento");
                     
                 that._createPieChart("mancantiChartContainer", "/charts/chartData/mancanti",
-                    ["#c00000", "#f5a0a0", "#408040"], "280px", "220px", "mancanti");
-                    
+                    ["#d7022e", "#fe968b", "#a2c997"], "280px", "220px", "mancanti");
+ 
                 that._createPieChart("evasiChartContainer", "/charts/chartData/evasi",
-                    ["#2b7d2b", "#e6b800", "#c00000"], "280px", "220px", "evasi");
-                    
+                    ["#a2c997", "#fe968b", "#d7022e"], "280px", "220px", "evasi");
+ 
                 that._createPieChart("ncPresenzaChartContainer", "/charts/chartData/ncPresenza",
-                    ["#c00000", "#f5a0a0", "#a0a0a0"], "200px", "180px", "ncPresenza");
-                    
+                    ["#d7022e", "#fe968b", "#747971"], "200px", "180px", "ncPresenza");
+ 
                 that._createSimpleBarChart("modificheOpenChartContainer", "/charts/chartData/modificheOpen",
-                    ["#c00000", "#f5a0a0", "#ffc0c0"]);
-                    
+                    ["#d5042ebf", "#d9585d", "#fe968b"]);
+ 
                 that._createSimpleBarChart("modificheClosedChartContainer", "/charts/chartData/modificheClosed",
-                    ["#c00000", "#f5a0a0", "#ffc0c0"]);
-                    
+                    ["#d7022e", "#d9585d", "#fe968b"]);
+ 
                 that._createColumnChart("tipologiaVarianzeChartContainer", "/charts/chartData/tipologiaVarianze",
-                    ["#808080", "#808080", "#808080", "#808080", "#808080", "#c00000", "#808080", "#808080", "#808080", "#808080"],
+                    ["#747971", "#747971", "#747971", "#747971", "#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971"],
                     "100%", "240px", "tipologiaVarianze");
-                    
+ 
                 that._createColumnChart("responsabilitaVarianzeChartContainer", "/charts/chartData/responsabilitaVarianze",
-                    ["#808080", "#c00000", "#808080", "#808080", "#808080", "#808080", "#808080"],
+                    ["#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971", "#747971"],
                     "100%", "240px", "responsabilitaVarianze");
+
+                // Spengo caricamento in corso...
+                if (that._oBusyDialog) {
+                    that._oBusyDialog.close();
+                }
+            
             }, 300);
         },
         
@@ -404,19 +420,20 @@ sap.ui.define([
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
 
-            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate"/"Ore completate",value:Y}, {label:"Ore varianza",value:Z}]
+            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate"/"Ore completate"/"Ore effettive",value:Y}, {label:"Ore varianza",value:Z}]
             var pianificate = 0, secondValue = 0, varianza = 0;
             var secondLabel = "Ore marcate";
             aData.forEach(function(item) {
                 if (item.label === "Ore pianificate") pianificate = item.value;
-                else if (item.label === "Ore marcate" || item.label === "Ore completate") {
+                else if (item.label === "Ore marcate" || item.label === "Ore completate" || item.label === "Ore effettive") {
                     secondValue = item.value;
                     secondLabel = item.label;
                 }
                 else if (item.label === "Ore varianza") varianza = item.value;
             });
 
-            var secondCategory = secondLabel === "Ore completate" ? "Completato" : "Marcato";
+            var categoryMap = { "Ore completate": "Completato", "Ore effettive": "Effettivo", "Ore marcate": "Marcato" };
+            var secondCategory = categoryMap[secondLabel] || "Marcato";
             var oChartData = [
                 { category: "Pianificato",    orePianificate: pianificate, oreSecond: 0,           oreVarianza: 0 },
                 { category: secondCategory,   orePianificate: 0,          oreSecond: secondValue,  oreVarianza: varianza }
@@ -452,9 +469,10 @@ sap.ui.define([
 
             oVizFrame.setVizProperties({
                 plotArea: {
-                    colorPalette: ["#a0a0a0", "#a0a0a0", "#c00000"],
+                    colorPalette: ["#3e3e3e", "#c0c2be", "#d7022e"],
                     dataLabel: {
                         visible: true,
+                        position: "outside",
                         style: { fontSize: "0.7rem" }
                     },
                     drawingEffect: "normal"
@@ -563,10 +581,10 @@ sap.ui.define([
         onSegmentedButtonSelect: function(oEvent) {
             var that = this;
             var sKey = oEvent.getParameter("key");
-            var labelMap = { "gruppi": "% Gruppi", "aggr": "% Aggregati", "macr": "% Macroaggregati" };
-            var sfcLabelMap = { "gruppi": "SFC Gruppi Progress", "aggr": "SFC Aggregati Progress", "macr": "SFC Macroaggregati Progress" };
-            that.oKPIModel.setProperty("/charts/gruppiLevelLabel", labelMap[sKey] || "% Gruppi");
-            that.oKPIModel.setProperty("/charts/sfcProgressLabel", sfcLabelMap[sKey] || "SFC Gruppi Progress");
+            var labelMap = { "all": "% All SFC", "gruppi": "% SFC Gruppi", "aggr": "% SFC Aggregati", "macr": "% SFC Macroaggregati" };
+            var sfcLabelMap = { "all": "SFC All Progress", "gruppi": "SFC Gruppi Progress", "aggr": "SFC Aggregati Progress", "macr": "SFC Macroaggregati Progress" };
+            that.oKPIModel.setProperty("/charts/gruppiLevelLabel", labelMap[sKey] || "% All SFC");
+            that.oKPIModel.setProperty("/charts/sfcProgressLabel", sfcLabelMap[sKey] || "SFC All Progress");
             that._applyGruppiLevel(sKey);
             // Re-render the SFC chart
             if (that._chartRefs["sfcProgress"]) {
@@ -574,7 +592,7 @@ sap.ui.define([
                 delete that._chartRefs["sfcProgress"];
             }
             that._createPieChart("sfcProgressChartContainer", "/charts/chartData/sfcProgress",
-                ["#2b7d2b", "#e6b800", "#cc0000"], "280px", "250px", "sfcProgress");
+                ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "sfcProgress");
         },
 
         onScostamentoSegmentedButtonSelect: function(oEvent) {
@@ -597,9 +615,9 @@ sap.ui.define([
             // Derive card values from the array
             var oGruppi = {};
             aLevelData.forEach(function(item) {
-                if (item.label === "Da iniziare") oGruppi.daIniziare = item.value + "%";
-                if (item.label === "Iniziati")    oGruppi.iniziati = item.value + "%";
-                if (item.label === "Completati")  oGruppi.completati = item.value + "%";
+                if (item.label === "SFC Da Iniziare") oGruppi.daIniziare = item.value + "%";
+                if (item.label === "SFC Iniziati")    oGruppi.iniziati = item.value + "%";
+                if (item.label === "SFC Completati")  oGruppi.completati = item.value + "%";
             });
             that.oKPIModel.setProperty("/charts/gruppi", oGruppi);
             // Use same data for chart
@@ -658,7 +676,11 @@ sap.ui.define([
             var oModel = new JSONModel({ items: aData });
 
             var aColumnControls = aColumns.map(function(col) {
-                return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+                return new Column({
+                    header: new Label({ text: col.label, design: "Bold" }),
+                    width: col.width || "auto",
+                    sortIndicator: "None"
+                });
             });
 
             var oTemplate = new ColumnListItem({
@@ -676,9 +698,16 @@ sap.ui.define([
             });
 
             oTable.setModel(oModel, sModelName);
+
+            var oSorter = null;
+            aColumnControls.forEach(function(oCol, idx) {
+                oCol.attachEventOnce("columnMenuOpen", function() {});
+            });
+
             oTable.bindItems({
                 path: sModelName + ">/items",
-                template: oTemplate
+                template: oTemplate,
+                sorter: oSorter
             });
 
             return oTable;
@@ -689,29 +718,26 @@ sap.ui.define([
             var aData = oResponse.data;
             var oModel = new JSONModel({ items: aData });
 
-            var aColumnControls = aColumns.map(function(col) {
-                return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+            var aTableColumns = aColumns.map(function(col) {
+                return new UIColumn({
+                    label: new Label({ text: col.label }),
+                    sortProperty: col.key,
+                    filterProperty: col.key,
+                    template: new Text({ text: "{" + sModelName + ">" + col.key + "}", wrapping: false }),
+                    width: col.width || "auto"
+                });
             });
 
-            var oTemplate = new ColumnListItem({
-                cells: aColumns.map(function(col) {
-                    return new Text({ text: "{" + sModelName + ">" + col.key + "}" });
-                })
-            });
-
-            var oTable = new Table({
-                columns: aColumnControls,
-                growing: true,
-                growingThreshold: 50,
-                alternateRowColors: true,
-                fixedLayout: false
+            var oTable = new sap.ui.table.Table({
+                columns: aTableColumns,
+                selectionMode: "None",
+                enableColumnReordering: false,
+                visibleRowCountMode: "Fixed",
+                visibleRowCount: 15
             });
 
             oTable.setModel(oModel, sModelName);
-            oTable.bindItems({
-                path: sModelName + ">/items",
-                template: oTemplate
-            });
+            oTable.bindRows(sModelName + ">/items");
 
             var that = this;
             var oDialog = new Dialog({
@@ -796,37 +822,43 @@ sap.ui.define([
             var aOrderCols = oResponse.columns;
             var aOrderData = oResponse.data;
             var oOrderModel = new JSONModel({ items: aOrderData });
-            var oOrderTable = new Table({
+            var oOrderTable = new sap.ui.table.Table({
                 columns: aOrderCols.map(function(col) {
-                    return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+                    return new UIColumn({
+                        label: new Label({ text: col.label }),
+                        sortProperty: col.key,
+                        filterProperty: col.key,
+                        template: new Text({ text: "{SFCOrders>" + col.key + "}", wrapping: false }),
+                        width: col.width || "auto"
+                    });
                 }),
-                growing: true, growingThreshold: 50, alternateRowColors: true, fixedLayout: false
+                selectionMode: "None",
+                visibleRowCountMode: "Fixed",
+                visibleRowCount: 15
             });
             oOrderTable.setModel(oOrderModel, "SFCOrders");
-            oOrderTable.bindItems({
-                path: "SFCOrders>/items",
-                template: new ColumnListItem({
-                    cells: aOrderCols.map(function(col) { return new Text({ text: "{SFCOrders>" + col.key + "}" }); })
-                })
-            });
+            oOrderTable.bindRows("SFCOrders>/items");
 
             // Tab 2: Tutte le operazioni
             var aOpsCols = oResponse.opsColumns;
             var aOpsData = oResponse.opsData;
             var oOpsModel = new JSONModel({ items: aOpsData });
-            var oOpsTable = new Table({
+            var oOpsTable = new sap.ui.table.Table({
                 columns: aOpsCols.map(function(col) {
-                    return new Column({ header: new Label({ text: col.label, design: "Bold" }), width: col.width || "auto" });
+                    return new UIColumn({
+                        label: new Label({ text: col.label }),
+                        sortProperty: col.key,
+                        filterProperty: col.key,
+                        template: new Text({ text: "{SFCOps>" + col.key + "}", wrapping: false }),
+                        width: col.width || "auto"
+                    });
                 }),
-                growing: true, growingThreshold: 50, alternateRowColors: true, fixedLayout: false
+                selectionMode: "None",
+                visibleRowCountMode: "Fixed",
+                visibleRowCount: 15
             });
             oOpsTable.setModel(oOpsModel, "SFCOps");
-            oOpsTable.bindItems({
-                path: "SFCOps>/items",
-                template: new ColumnListItem({
-                    cells: aOpsCols.map(function(col) { return new Text({ text: "{SFCOps>" + col.key + "}" }); })
-                })
-            });
+            oOpsTable.bindRows("SFCOps>/items");
 
             var oIconTabBar = new IconTabBar({
                 expandable: false,
@@ -977,6 +1009,8 @@ sap.ui.define([
                 if (col.isIcon) {
                     return new UIColumn({
                         label: new Label({ text: col.label }),
+                        sortProperty: col.key,
+                        filterProperty: col.key,
                         template: new sap.ui.core.Icon({
                             src: {
                                 path: sModelName + ">" + col.key,
@@ -997,6 +1031,8 @@ sap.ui.define([
                 }
                 return new UIColumn({
                     label: new Label({ text: col.label }),
+                    sortProperty: col.key,
+                    filterProperty: col.key,
                     template: new Text({ text: "{" + sModelName + ">" + col.key + "}", wrapping: false }),
                     width: col.width || "auto"
                 });
@@ -1087,6 +1123,125 @@ sap.ui.define([
         },
 
         // ========== PDF EXPORT (native print to PDF, no external libs) ==========
+
+        /**
+         * Flatten tree data (parent + children) using column definitions
+         */
+        _flattenTreeData: function(oResponse) {
+            var aParentCols = oResponse.parentColumns || [];
+            var aChildCols = oResponse.childColumns || [];
+            var allColumns = aParentCols.concat(aChildCols);
+            var aData = oResponse.data || [];
+            var aFlat = [];
+            aData.forEach(function(parent) {
+                var oRow = {};
+                allColumns.forEach(function(col) {
+                    oRow[col.key] = parent[col.key] !== undefined ? parent[col.key] : "";
+                });
+                aFlat.push(oRow);
+                (parent.children || []).forEach(function(child) {
+                    var oChild = {};
+                    allColumns.forEach(function(col) {
+                        oChild[col.key] = child[col.key] !== undefined ? child[col.key] : "";
+                    });
+                    aFlat.push(oChild);
+                });
+            });
+            return { columns: allColumns, data: aFlat };
+        },
+
+        /**
+         * Collect all export sections from the details model.
+         * Returns array of { name, columns, data } objects.
+         */
+        _collectExportSections: function() {
+            var that = this;
+            var details = that.oKPIModel.getProperty("/charts/details") || {};
+            var sections = [];
+
+            function addFlat(name, oResp) {
+                if (!oResp || !oResp.columns || !oResp.data || oResp.data.length === 0) return;
+                sections.push({ name: name, columns: oResp.columns.filter(function(c) { return !c.isIcon; }), data: oResp.data });
+            }
+            function addTree(name, oResp) {
+                if (!oResp || !oResp.data || oResp.data.length === 0) return;
+                var flat = that._flattenTreeData(oResp);
+                sections.push({ name: name, columns: flat.columns.filter(function(c) { return !c.isIcon; }), data: flat.data });
+            }
+
+            addTree("Machine Progress", details.machineProgress);
+            var oSfc = details.sfcProgress && details.sfcProgress.all;
+            if (oSfc) {
+                addFlat("SFC Progress Ordini", { columns: oSfc.columns, data: oSfc.data });
+                addFlat("SFC Progress Operazioni", { columns: oSfc.opsColumns, data: oSfc.opsData });
+            }
+            addTree("Scostamento", details.scostamento && details.scostamento.All);
+            addFlat("Mancanti", details.mancanti);
+            addFlat("Evasi", details.evasi);
+            addTree("Modifiche Engineering", details.modifiche);
+            addFlat("Tipologia Varianze", details.tipologiaVarianze);
+            addFlat("Responsabilita Varianze", details.responsabilitaVarianze);
+
+            return sections;
+        },
+
+        onDownloadExcel: function() {
+            var that = this;
+            var sections = that._collectExportSections();
+            if (sections.length === 0) {
+                sap.m.MessageToast.show("Nessun dato disponibile per l'esportazione.");
+                return;
+            }
+
+            // Find max column count across all sections
+            var maxCols = 0;
+            sections.forEach(function(s) { maxCols = Math.max(maxCols, s.columns.length); });
+
+            // Build generic export columns (c0..cN) with empty labels
+            var aExportColumns = [];
+            for (var i = 0; i < maxCols; i++) {
+                aExportColumns.push({ label: " ", property: "c" + i, type: "String" });
+            }
+
+            // Build combined data: section header row + column headers row + data rows + blank separator
+            var aAllData = [];
+            sections.forEach(function(section, sIdx) {
+                // Section name row
+                var oNameRow = {};
+                oNameRow["c0"] = "[ " + section.name + " ]";
+                aAllData.push(oNameRow);
+                // Column headers row
+                var oHeaderRow = {};
+                section.columns.forEach(function(col, ci) { oHeaderRow["c" + ci] = col.label; });
+                aAllData.push(oHeaderRow);
+                // Data rows
+                section.data.forEach(function(row) {
+                    var oRow = {};
+                    section.columns.forEach(function(col, ci) {
+                        var val = row[col.key];
+                        oRow["c" + ci] = (val !== undefined && val !== null) ? String(val) : "";
+                    });
+                    aAllData.push(oRow);
+                });
+                // Blank separator
+                aAllData.push({});
+            });
+
+            // Generate file name
+            var oHeader = that.oKPIModel.getProperty("/header") || {};
+            var sFileName = "Dashboard_KPI";
+            if (oHeader.project) sFileName += "_" + oHeader.project;
+            if (oHeader.wbe) sFileName += "_" + oHeader.wbe;
+            sFileName += ".xlsx";
+
+            var oSheet = new Spreadsheet({
+                workbook: { columns: aExportColumns, context: { sheetName: "Export KPI" } },
+                dataSource: aAllData,
+                fileName: sFileName,
+                showProgress: false
+            });
+            oSheet.build().finally(function() { oSheet.destroy(); });
+        },
 
         onDownloadPDF: function() {
             var that = this;

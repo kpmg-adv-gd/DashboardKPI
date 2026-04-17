@@ -2,6 +2,7 @@
 	
 	<Page id="kpiDashboardPage" title="{i18n>dashboard.kpi.title}" showNavButton="true" navButtonPress="onNavBack" class="kpiDashboardPage">
 		<headerContent>
+			<Button icon="sap-icon://excel-attachment" text="Esporta Excel" press="onDownloadExcel" type="Emphasized"/>
 			<Button icon="sap-icon://pdf-attachment" text="Esporta PDF" press="onDownloadPDF" type="Emphasized"/>
 		</headerContent>
 		<content>
@@ -55,27 +56,28 @@
 											
 											<!-- % Gruppi Card -->
 											<VBox class="kpiCard sapUiSmallMarginEnd">
-												<SegmentedButton id="gruppiSegmentedButton" selectedKey="gruppi" select="onSegmentedButtonSelect">
+												<SegmentedButton id="gruppiSegmentedButton" selectedKey="all" select="onSegmentedButtonSelect" width="100%">
 													<items>
-														<SegmentedButtonItem key="gruppi" text="GRUPPI"/>
-														<SegmentedButtonItem key="aggr" text="AGGR"/>
-														<SegmentedButtonItem key="macr" text="MACR"/>
+														<SegmentedButtonItem key="all" text="All"/>
+														<SegmentedButtonItem key="gruppi" text="Gruppi"/>
+														<SegmentedButtonItem key="aggr" text="Aggregati"/>
+														<SegmentedButtonItem key="macr" text="Macro"/>
 													</items>
 												</SegmentedButton>
 												<Label text="{KPIModel>/charts/gruppiLevelLabel}" design="Bold" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
-												<l:Grid defaultSpan="L6 M6 S12">
-													<VBox>
+												<VBox>
+													<VBox class="sapUiTinyMarginBottom">
 														<Label text="{i18n>dashboard.gruppi.daIniziare}" class="kpiSmallLabel"/>
 														<Text text="{KPIModel>/charts/gruppi/daIniziare}" class="kpiPercentValue"/>
 													</VBox>
-													<VBox>
+													<VBox class="sapUiTinyMarginBottom">
 														<Label text="{i18n>dashboard.gruppi.iniziati}" class="kpiSmallLabel"/>
 														<Text text="{KPIModel>/charts/gruppi/iniziati}" class="kpiPercentValue"/>
 													</VBox>
-												</l:Grid>
-												<VBox class="sapUiTinyMarginTop">
-													<Label text="{i18n>dashboard.gruppi.completati}" class="kpiSmallLabel"/>
-													<Text text="{KPIModel>/charts/gruppi/completati}" class="kpiPercentValue"/>
+													<VBox>
+														<Label text="{i18n>dashboard.gruppi.completati}" class="kpiSmallLabel"/>
+														<Text text="{KPIModel>/charts/gruppi/completati}" class="kpiPercentValue"/>
+													</VBox>
 												</VBox>
 											</VBox>
 											
@@ -95,8 +97,9 @@
 											
 											<!-- Scostamento Card -->
 											<VBox class="kpiCard" alignItems="Center">
-												<SegmentedButton id="scostamentoSegmentedButton" selectedKey="GD" select="onScostamentoSegmentedButtonSelect" width="calc(100% - 1rem)" class="sapUiTinyMargin">
+												<SegmentedButton id="scostamentoSegmentedButton" selectedKey="All" select="onScostamentoSegmentedButtonSelect" width="calc(100% - 1rem)" class="sapUiTinyMargin">
 													<items>
+														<SegmentedButtonItem key="All" text="ALL"/>
 														<SegmentedButtonItem key="GD" text="GD"/>
 														<SegmentedButtonItem key="Fornitori" text="FORNITORI"/>
 													</items>

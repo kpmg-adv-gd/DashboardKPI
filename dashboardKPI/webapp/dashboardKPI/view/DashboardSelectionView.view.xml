@@ -52,40 +52,52 @@
 				expandFirstLevel="true"
 				class="kpmgGDTable">
 				<table:columns>
-					<table:Column width="20%">
+					<table:Column width="20%" sortProperty="project" filterProperty="project">
 						<Label text="{i18n>mainview.table.project}"/>
 						<table:template>
 							<Text text="{DashboardModel>project}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="15%">
+					<table:Column width="15%" sortProperty="wbe" filterProperty="wbe">
 						<Label text="{i18n>mainview.table.wbe}"/>
 						<table:template>
 							<Text text="{DashboardModel>wbe}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="15%">
+					<table:Column width="15%" sortProperty="section" filterProperty="section">
 						<Label text="{i18n>dashboard.table.section}"/>
 						<table:template>
 							<Text text="{DashboardModel>section}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="25%">
+					<table:Column width="25%" sortProperty="sfc" filterProperty="sfc">
 						<Label text="{i18n>mainview.table.sfc}"/>
 						<table:template>
 							<Text text="{DashboardModel>sfc}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="15%">
+					<table:Column width="15%" sortProperty="order" filterProperty="order">
 						<Label text="{i18n>dashboard.table.order}"/>
 						<table:template>
 							<Text text="{DashboardModel>order}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="10%">
+					<table:Column width="10%" sortProperty="material" filterProperty="material">
 						<Label text="{i18n>dashboard.table.material}"/>
 						<table:template>
 							<Text text="{DashboardModel>material}" wrapping="false"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="8%" hAlign="Center" sortProperty="executionStatus" filterProperty="executionStatus">
+						<Label text="{i18n>dashboard.table.status}"/>
+						<table:template>
+							<core:Icon src="{path: 'DashboardModel>executionStatus', formatter: '.getStatusIcon'}" color="{path: 'DashboardModel>executionStatus', formatter: '.getStatusColor'}" size="1.4rem" visible="{= ${DashboardModel>executionStatus} !== '' &amp;&amp; ${DashboardModel>order} !== '' }"/>
+						</table:template>
+					</table:Column>
+					<table:Column width="8%" hAlign="Center" sortProperty="sentToTesting" filterProperty="sentToTesting">
+						<Label text="{i18n>dashboard.table.sentToTesting}"/>
+						<table:template>
+							<core:Icon src="sap-icon://accept" color="green" size="1.4rem" visible="{= (${DashboardModel>sentToTesting} === 'TRUE' || ${DashboardModel>sentToTesting} === 'true') &amp;&amp; ${DashboardModel>order} !== '' }"/>
 						</table:template>
 					</table:Column>
 				</table:columns>
@@ -94,4 +106,4 @@
 		</content>
 	</Page>
   
-</mvc:View>	
+</mvc:View>
