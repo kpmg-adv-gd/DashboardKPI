@@ -7,6 +7,7 @@ sap.ui.define([
     "sap/viz/ui5/data/FlattenedDataset",
     "sap/viz/ui5/controls/common/feeds/FeedItem",
     "sap/m/Dialog",
+    "sap/m/Popover",
     "sap/m/Button",
     "sap/m/Table",
     "sap/m/Column",
@@ -20,7 +21,7 @@ sap.ui.define([
     "sap/ui/table/RowSettings",
     "sap/ui/export/Spreadsheet"
 ], function (jQuery, JSONModel, BaseController, CommonCallManager, VizFrame, FlattenedDataset, FeedItem,
-             Dialog, Button, Table, Column, ColumnListItem, Text, Label, IconTabBar, IconTabFilter,
+             Dialog, Popover, Button, Table, Column, ColumnListItem, Text, Label, IconTabBar, IconTabFilter,
              TreeTable, UIColumn, RowSettings, Spreadsheet) {
 	"use strict";
 
@@ -119,6 +120,11 @@ sap.ui.define([
                 that.oKPIModel.setProperty("/charts", response);
                 that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% All SFC");
                 that.oKPIModel.setProperty("/charts/sfcProgressLabel", "SFC All Progress");
+                // Reset SegmentedButton al valore di default (potrebbero essere rimasti al valore precedente)
+                var oGruppiBtn = that.byId("gruppiSegmentedButton");
+                if (oGruppiBtn) oGruppiBtn.setSelectedKey("all");
+                var oScostBtn = that.byId("scostamentoSegmentedButton");
+                if (oScostBtn) oScostBtn.setSelectedKey("All");
                 // Inizializza gruppi e sfcProgress dal livello default "all"
                 that._applyGruppiLevel("all");
                 // Inizializza scostamento dal livello default "All"
@@ -420,7 +426,6 @@ sap.ui.define([
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
 
-            // aData = [{label:"Ore pianificate",value:X}, {label:"Ore marcate"/"Ore completate"/"Ore effettive",value:Y}, {label:"Ore varianza",value:Z}]
             var pianificate = 0, secondValue = 0, varianza = 0;
             var secondLabel = "Ore marcate";
             aData.forEach(function(item) {
@@ -434,64 +439,143 @@ sap.ui.define([
 
             var categoryMap = { "Ore completate": "Completato", "Ore effettive": "Effettivo", "Ore marcate": "Marcato" };
             var secondCategory = categoryMap[secondLabel] || "Marcato";
-            var oChartData = [
-                { category: "Pianificato",    orePianificate: pianificate, oreSecond: 0,           oreVarianza: 0 },
-                { category: secondCategory,   orePianificate: 0,          oreSecond: secondValue,  oreVarianza: varianza }
+
+            // CHANGE 1: total for second bar = sum of both stacked segments
+            var totalMarcato = secondValue + varianza;
+            var maxValue = Math.max(pianificate, totalMarcato, 1);
+
+            var chartH = 150; // bar area height in px
+            var barW = 60;
+
+            var fmtNum = function(n) {
+                return typeof n === "number" ? n.toFixed(2).replace(".", ",") : String(n);
+            };
+
+            var aBars = [
+                {
+                    category: "Pianificato",
+                    total: pianificate,
+                    color: "#3e3e3e",
+                    segments: [{ label: "Ore pianificate", value: pianificate, color: "#3e3e3e" }]
+                },
+                {
+                    category: secondCategory,
+                    total: totalMarcato,
+                    color: "#c0c2be",
+                    // Top segment first (column direction: top → bottom)
+                    segments: [
+                        { label: "Ore varianza", value: varianza, color: "#d7022e" },
+                        { label: secondLabel,    value: secondValue, color: "#c0c2be" }
+                    ]
+                }
             ];
 
-            var oChartModel = new JSONModel({ items: oChartData });
+            var sId = "scost-chart-" + sChartKey;
 
-            var oDataset = new FlattenedDataset({
-                dimensions: [{
-                    name: "Categoria",
-                    value: "{category}"
-                }],
-                measures: [
-                    { name: "Ore pianificate", value: "{orePianificate}" },
-                    { name: secondLabel,       value: "{oreSecond}" },
-                    { name: "Ore varianza",    value: "{oreVarianza}" }
-                ],
-                data: { path: "/items" }
+            // Chart area: bars align to bottom edge
+            var sHtml = '<div id="' + sId + '" style="width:100%;box-sizing:border-box;font-family:72,Arial,sans-serif;font-size:0.75rem;">';
+
+            // Bar area row (fixed height so bars are bottom-aligned)
+            sHtml += '<div style="display:flex;align-items:flex-end;justify-content:space-evenly;height:' + (chartH + 22) + 'px;padding:0 8px;">';
+
+            aBars.forEach(function(bar, idx) {
+                var totalH = bar.total > 0 ? (bar.total / maxValue) * chartH : 0;
+                sHtml += '<div class="scost-bar" data-idx="' + idx + '" style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">';
+                // CHANGE 2: value label ABOVE the bar (outside, not inside)
+                sHtml += '<span style="font-weight:bold;margin-bottom:3px;font-size:0.75rem;">' + fmtNum(bar.total) + '</span>';
+                // Stacked bar container
+                sHtml += '<div style="width:' + barW + 'px;height:' + totalH + 'px;display:flex;flex-direction:column;overflow:hidden;">';
+                bar.segments.forEach(function(seg) {
+                    var segH = bar.total > 0 ? (seg.value / maxValue) * chartH : 0;
+                    if (segH < 1 && seg.value > 0) { segH = 1; }
+                    sHtml += '<div style="width:100%;height:' + segH + 'px;background:' + seg.color + ';flex-shrink:0;"></div>';
+                });
+                sHtml += '</div>';
+                sHtml += '</div>';
             });
 
-            var oVizFrame = new VizFrame({
-                width: sWidth,
-                height: sHeight,
-                vizType: "stacked_column",
-                uiConfig: { applicationSet: "fiori" },
-                dataset: oDataset
+            sHtml += '</div>';
+
+            // X-axis labels
+            sHtml += '<div style="display:flex;justify-content:space-evenly;padding:0 8px;">';
+            aBars.forEach(function(bar) {
+                sHtml += '<span style="width:' + barW + 'px;text-align:center;font-size:0.75rem;">' + bar.category + '</span>';
             });
+            sHtml += '</div>';
 
-            oVizFrame.setModel(oChartModel);
+            // Legend
+            sHtml += '<div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:8px;">';
+            sHtml += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:12px;height:12px;background:#3e3e3e;flex-shrink:0;"></span>Ore pianificate</span>';
+            sHtml += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:12px;height:12px;background:#c0c2be;flex-shrink:0;"></span>' + secondLabel + '</span>';
+            sHtml += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:12px;height:12px;background:#d7022e;flex-shrink:0;"></span>Ore varianza</span>';
+            sHtml += '</div>';
 
-            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Ore pianificate", secondLabel, "Ore varianza"] }));
-            oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
+            sHtml += '</div>';
 
-            oVizFrame.setVizProperties({
-                plotArea: {
-                    colorPalette: ["#3e3e3e", "#c0c2be", "#d7022e"],
-                    dataLabel: {
-                        visible: true,
-                        position: "outside",
-                        style: { fontSize: "0.7rem" }
-                    },
-                    drawingEffect: "normal"
-                },
-                valueAxis: {
-                    title: { visible: false }
-                },
-                categoryAxis: {
-                    title: { visible: false }
-                },
-                legend: { visible: true },
-                title: { visible: false },
-                interaction: {
-                    selectability: { mode: "single" }
+            var oHtml = new sap.ui.core.HTML({
+                content: sHtml,
+                afterRendering: function() {
+                    setTimeout(function() {
+                        // CHANGE 3: click on bar → popup with name and value
+                        jQuery('#' + sId + ' .scost-bar').off('click').on('click', function(e) {
+                            var idx = parseInt(jQuery(this).data('idx'));
+                            if (!isNaN(idx) && aBars[idx]) {
+                                that._showScostamentoPopup(e.currentTarget, aBars[idx]);
+                            }
+                        });
+                    }, 50);
                 }
             });
 
-            oContainer.addItem(oVizFrame);
-            that._chartRefs[sChartKey] = oVizFrame;
+            oContainer.addItem(oHtml);
+            that._chartRefs[sChartKey] = oHtml;
+        },
+
+        _showScostamentoPopup: function(oDomTarget, oBar) {
+            var that = this;
+
+            if (that._oScostamentoPopover) {
+                that._oScostamentoPopover.destroy();
+                that._oScostamentoPopover = null;
+            }
+
+            var fmtNum = function(n) {
+                return typeof n === "number" ? n.toFixed(2).replace(".", ",") : String(n);
+            };
+
+            var oVBox = new sap.m.VBox({ class: "sapUiMediumMarginBeginEnd sapUiMediumMarginTopBottom" });
+
+            // Category header with color indicator
+            var oCatHBox = new sap.m.HBox({ alignItems: "Center", class: "sapUiSmallMarginBottom" });
+            oCatHBox.addItem(new sap.ui.core.HTML({
+                content: '<span style="display:inline-block;width:12px;height:12px;background:' + oBar.color + ';margin-right:8px;flex-shrink:0;border-radius:2px;"></span>'
+            }));
+            oCatHBox.addItem(new sap.m.Label({ text: oBar.category, design: "Bold" }));
+            oVBox.addItem(oCatHBox);
+
+            // One row per segment
+            oBar.segments.forEach(function(seg) {
+                var oRow = new sap.m.HBox({ justifyContent: "SpaceBetween", class: "sapUiSmallMarginTop" });
+                oRow.addItem(new sap.m.Text({ text: seg.label }));
+                oRow.addItem(new sap.m.Text({
+                    text: fmtNum(seg.value),
+                    class: "kpiValueRed sapUiMediumMarginBegin"
+                }));
+                oVBox.addItem(oRow);
+            });
+
+            var oPopover = new Popover({
+                title: "Selezione attuale",
+                content: [oVBox],
+                afterClose: function() {
+                    oPopover.destroy();
+                    that._oScostamentoPopover = null;
+                }
+            });
+
+            that.getView().addDependent(oPopover);
+            that._oScostamentoPopover = oPopover;
+            oPopover.openBy(oDomTarget);
         },
 
         /**
