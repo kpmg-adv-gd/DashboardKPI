@@ -187,8 +187,8 @@ sap.ui.define([
 		},
 		
 		// Formatter Status icon
-		getStatusIcon: function(executionStatus) {
-			switch (executionStatus) {
+		getStatusIcon: function(status) {
+			switch (status) {
 				case "NEW":
 					return "sap-icon://rhombus-milestone-2";
 				case "IN_QUEUE":
@@ -203,8 +203,8 @@ sap.ui.define([
 		},
 
 		// Formatter Status color
-		getStatusColor: function(executionStatus) {
-			switch (executionStatus) {
+		getStatusColor: function(status) {
+			switch (status) {
 				case "NEW":
 					return "grey";
 				case "IN_QUEUE":

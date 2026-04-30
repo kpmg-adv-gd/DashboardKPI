@@ -94,10 +94,10 @@
 							<Text text="{DashboardModel>sfc}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="8%" hAlign="Center" sortProperty="executionStatus" filterProperty="executionStatus">
+					<table:Column width="8%" hAlign="Center" sortProperty="status" filterProperty="status">
 						<Label text="{i18n>dashboard.table.status}"/>
 						<table:template>
-							<core:Icon src="{path: 'DashboardModel>executionStatus', formatter: '.getStatusIcon'}" color="{path: 'DashboardModel>executionStatus', formatter: '.getStatusColor'}" size="1.4rem" visible="{= ${DashboardModel>executionStatus} !== '' &amp;&amp; ${DashboardModel>order} !== '' }"/>
+							<core:Icon src="{path: 'DashboardModel>status', formatter: '.getStatusIcon'}" color="{path: 'DashboardModel>status', formatter: '.getStatusColor'}" size="1.4rem" visible="{= ${DashboardModel>status} !== '' &amp;&amp; ${DashboardModel>order} !== '' }"/>
 						</table:template>
 					</table:Column>
 					<table:Column width="8%" hAlign="Center" sortProperty="sentToTesting" filterProperty="sentToTesting">
