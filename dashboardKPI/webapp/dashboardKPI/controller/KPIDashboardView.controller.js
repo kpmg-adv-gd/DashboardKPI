@@ -826,8 +826,8 @@ sap.ui.define([
             var that = this;
             var oDialog = new Dialog({
                 title: sTitle,
-                contentWidth: "90%",
-                contentHeight: "70%",
+                contentWidth: "95%",
+                contentHeight: "95%",
                 resizable: true,
                 draggable: true,
                 content: [oTable],
