@@ -189,9 +189,13 @@ sap.ui.define([
 		// Formatter Status icon
 		getStatusIcon: function(executionStatus) {
 			switch (executionStatus) {
+				case "NEW":
+					return "sap-icon://rhombus-milestone-2";
+				case "IN_QUEUE":
+					return "sap-icon://color-fill";
 				case "ACTIVE":
-					return "sap-icon://lateness";
-				case "COMPLETED":
+					return "sap-icon://circle-task-2";
+				case "DONE":
 					return "sap-icon://complete";
 				default:
 					return "sap-icon://decline";
@@ -201,9 +205,13 @@ sap.ui.define([
 		// Formatter Status color
 		getStatusColor: function(executionStatus) {
 			switch (executionStatus) {
+				case "NEW":
+					return "grey";
+				case "IN_QUEUE":
+					return "blue";
 				case "ACTIVE":
-					return "#d19e13";
-				case "COMPLETED":
+					return "green";
+				case "DONE":
 					return "green";
 				default:
 					return "red";

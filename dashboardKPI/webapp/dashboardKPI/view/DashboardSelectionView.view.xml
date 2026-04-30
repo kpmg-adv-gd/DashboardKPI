@@ -64,16 +64,22 @@
 							<Text text="{DashboardModel>wbe}" wrapping="false"/>
 						</table:template>
 					</table:Column>
+					<table:Column width="10%" sortProperty="material" filterProperty="material">
+						<Label text="{i18n>dashboard.table.material}"/>
+						<table:template>
+							<Text text="{DashboardModel>material}" wrapping="false"/>
+						</table:template>
+					</table:Column>
 					<table:Column width="15%" sortProperty="section" filterProperty="section">
 						<Label text="{i18n>dashboard.table.section}"/>
 						<table:template>
 							<Text text="{DashboardModel>section}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="25%" sortProperty="sfc" filterProperty="sfc">
-						<Label text="{i18n>mainview.table.sfc}"/>
+					<table:Column width="10%" sortProperty="customer" filterProperty="customer">
+						<Label text="{i18n>dashboard.table.customer}"/>
 						<table:template>
-							<Text text="{DashboardModel>sfc}" wrapping="false"/>
+							<Text text="{DashboardModel>customer}" wrapping="false"/>
 						</table:template>
 					</table:Column>
 					<table:Column width="15%" sortProperty="order" filterProperty="order">
@@ -82,10 +88,10 @@
 							<Text text="{DashboardModel>order}" wrapping="false"/>
 						</table:template>
 					</table:Column>
-					<table:Column width="10%" sortProperty="material" filterProperty="material">
-						<Label text="{i18n>dashboard.table.material}"/>
+					<table:Column width="25%" sortProperty="sfc" filterProperty="sfc">
+						<Label text="{i18n>mainview.table.sfc}"/>
 						<table:template>
-							<Text text="{DashboardModel>material}" wrapping="false"/>
+							<Text text="{DashboardModel>sfc}" wrapping="false"/>
 						</table:template>
 					</table:Column>
 					<table:Column width="8%" hAlign="Center" sortProperty="executionStatus" filterProperty="executionStatus">
