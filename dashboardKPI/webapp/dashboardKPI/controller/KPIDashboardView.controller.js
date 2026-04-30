@@ -826,8 +826,8 @@ sap.ui.define([
             var that = this;
             var oDialog = new Dialog({
                 title: sTitle,
-                contentWidth: "95%",
-                contentHeight: "95%",
+                contentWidth: "98%",
+                contentHeight: "98%",
                 resizable: true,
                 draggable: true,
                 content: [oTable],
@@ -956,8 +956,8 @@ sap.ui.define([
             var sDialogTitle = (this.oKPIModel.getProperty("/charts/sfcProgressLabel") || "SFC Gruppi Progress") + " - Dettaglio";
             var oDialog = new Dialog({
                 title: sDialogTitle,
-                contentWidth: "90%",
-                contentHeight: "70%",
+                contentWidth: "98%",
+                contentHeight: "98%",
                 resizable: true,
                 draggable: true,
                 content: [oIconTabBar],
@@ -1152,8 +1152,8 @@ sap.ui.define([
             var that = this;
             var oDialog = new Dialog({
                 title: sTitle,
-                contentWidth: "95%",
-                contentHeight: "70%",
+                contentWidth: "98%",
+                contentHeight: "98%",
                 resizable: true,
                 draggable: true,
                 content: aDialogContent,
