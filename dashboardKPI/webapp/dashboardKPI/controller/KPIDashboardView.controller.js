@@ -1,6 +1,6 @@
 sap.ui.define([
     'jquery.sap.global',
-	"sap/ui/model/json/JSONModel",
+    "sap/ui/model/json/JSONModel",
     "./BaseController",
     "../utilities/CommonCallManager",
     "sap/viz/ui5/controls/VizFrame",
@@ -21,33 +21,33 @@ sap.ui.define([
     "sap/ui/table/RowSettings",
     "sap/ui/export/Spreadsheet"
 ], function (jQuery, JSONModel, BaseController, CommonCallManager, VizFrame, FlattenedDataset, FeedItem,
-             Dialog, Popover, Button, Table, Column, ColumnListItem, Text, Label, IconTabBar, IconTabFilter,
-             TreeTable, UIColumn, RowSettings, Spreadsheet) {
-	"use strict";
+    Dialog, Popover, Button, Table, Column, ColumnListItem, Text, Label, IconTabBar, IconTabFilter,
+    TreeTable, UIColumn, RowSettings, Spreadsheet) {
+    "use strict";
 
-	return BaseController.extend("kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.KPIDashboardView", {
+    return BaseController.extend("kpmg.custom.tile.dashboardKPI.dashboardKPI.controller.KPIDashboardView", {
         oKPIModel: new JSONModel(),
         _chartRefs: {},
 
-		onInit: function () {
+        onInit: function () {
             this.getView().setModel(this.oKPIModel, "KPIModel");
-		},
+        },
 
-        onNavigateTo: function() {
+        onNavigateTo: function () {
             this.onAfterRendering();
         },
-        
-        onAfterRendering: function() {
+
+        onAfterRendering: function () {
             var that = this;
             var oSelectedData = that.getInfoModel().getProperty("/selectedRow");
-            
+
             if (oSelectedData) {
                 that.setHeaderData(oSelectedData);
                 that.loadDataKPI();
             }
         },
-        
-        setHeaderData: function(oSelectedData) {
+
+        setHeaderData: function (oSelectedData) {
             var that = this;
             // Current date formatted as dd/MM/yyyy
             var oToday = new Date();
@@ -72,7 +72,7 @@ sap.ui.define([
             that.loadActualDate(oSelectedData);
         },
 
-        loadActualDate: function(oSelectedData) {
+        loadActualDate: function (oSelectedData) {
             var that = this;
             var BaseProxyURL = that.getInfoModel().getProperty("/BaseProxyURL");
             var url = BaseProxyURL + "/db/getActualDateDashboardKPI";
@@ -84,13 +84,13 @@ sap.ui.define([
                 machSection: oSelectedData.section || ""
             };
 
-            var successCallback = function(response) {
+            var successCallback = function (response) {
                 if (response && response.actualDate) {
                     that.oKPIModel.setProperty("/header/actual", response.actualDate);
                 }
             };
 
-            var errorCallback = function(error) {
+            var errorCallback = function (error) {
                 console.log("Error fetching actual date:", error);
             };
 
@@ -101,8 +101,8 @@ sap.ui.define([
             var that = this;
             let BaseProxyURL = that.getInfoModel().getProperty("/BaseProxyURL");
             let pathOrderBomApi = "/db/getDashboardKPI";
-            let url = BaseProxyURL + pathOrderBomApi; 
-            
+            let url = BaseProxyURL + pathOrderBomApi;
+
             var plant = that.getInfoModel().getProperty("/plant");
             var oSelectedData = that.getInfoModel().getProperty("/selectedRow");
 
@@ -116,7 +116,7 @@ sap.ui.define([
                 order: oSelectedData.order
             };
 
-            var successCallback = function(response) {
+            var successCallback = function (response) {
                 that.oKPIModel.setProperty("/charts", response);
                 that.oKPIModel.setProperty("/charts/gruppiLevelLabel", "% All SFC");
                 that.oKPIModel.setProperty("/charts/sfcProgressLabel", "SFC All Progress");
@@ -129,15 +129,15 @@ sap.ui.define([
                 that._applyGruppiLevel("all");
                 // Inizializza scostamento dal livello default "All"
                 that._applyScostamentoLevel("All");
-                setTimeout(function() {
+                setTimeout(function () {
                     that.renderCharts();
                 }, 500);
             };
-            
-            var errorCallback = function(error) {
+
+            var errorCallback = function (error) {
                 console.log("Chiamata POST fallita:", error);
                 that.oKPIModel.setProperty("/", {});
-                setTimeout(function() {
+                setTimeout(function () {
                     that.renderCharts();
                 }, 500);
             };
@@ -156,40 +156,40 @@ sap.ui.define([
         },
 
         // ========== RENDERING CHARTS ==========
-        
-        renderCharts: function() {
+
+        renderCharts: function () {
             var that = this;
             that._destroyAllCharts();
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 that._createPieChart("machineProgressChartContainer", "/charts/chartData/machineProgress",
-                      ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "machineProgress");
-                    
+                    ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "machineProgress");
+
                 that._createPieChart("sfcProgressChartContainer", "/charts/chartData/sfcProgress",
                     ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "sfcProgress");
-                    
+
                 that._createScostamentoChart("scostamentoChartContainer", "/charts/chartData/scostamento",
                     "250px", "200px", "scostamento");
-                    
+
                 that._createPieChart("mancantiChartContainer", "/charts/chartData/mancanti",
                     ["#d7022e", "#fe968b", "#a2c997"], "280px", "220px", "mancanti");
- 
+
                 that._createPieChart("evasiChartContainer", "/charts/chartData/evasi",
                     ["#a2c997", "#fe968b", "#d7022e"], "280px", "220px", "evasi");
- 
+
                 that._createPieChart("ncPresenzaChartContainer", "/charts/chartData/ncPresenza",
                     ["#d7022e", "#fe968b", "#747971"], "200px", "180px", "ncPresenza");
- 
+
                 that._createSimpleBarChart("modificheOpenChartContainer", "/charts/chartData/modificheOpen",
                     ["#d5042ebf", "#d9585d", "#fe968b"]);
- 
+
                 that._createSimpleBarChart("modificheClosedChartContainer", "/charts/chartData/modificheClosed",
                     ["#d7022e", "#d9585d", "#fe968b"]);
- 
+
                 that._createColumnChart("tipologiaVarianzeChartContainer", "/charts/chartData/tipologiaVarianze",
                     ["#747971", "#747971", "#747971", "#747971", "#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971"],
                     "100%", "240px", "tipologiaVarianze");
- 
+
                 that._createColumnChart("responsabilitaVarianzeChartContainer", "/charts/chartData/responsabilitaVarianze",
                     ["#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971", "#747971"],
                     "100%", "240px", "responsabilitaVarianze");
@@ -198,32 +198,32 @@ sap.ui.define([
                 if (that._oBusyDialog) {
                     that._oBusyDialog.close();
                 }
-            
+
             }, 300);
         },
-        
-        _destroyAllCharts: function() {
+
+        _destroyAllCharts: function () {
             var that = this;
-            Object.keys(that._chartRefs).forEach(function(key) {
+            Object.keys(that._chartRefs).forEach(function (key) {
                 if (that._chartRefs[key]) {
                     that._chartRefs[key].destroy();
                 }
             });
             that._chartRefs = {};
         },
-        
-        _createPieChart: function(sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
+
+        _createPieChart: function (sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
             var that = this;
             var oContainer = that.byId(sContainerId);
             if (!oContainer) return;
-            
+
             oContainer.removeAllItems();
-            
+
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
-            
+
             var oChartModel = new JSONModel({ items: aData });
-            
+
             var oDataset = new FlattenedDataset({
                 dimensions: [{
                     name: "Categoria",
@@ -237,7 +237,7 @@ sap.ui.define([
                     path: "/items"
                 }
             });
-            
+
             var oVizFrame = new VizFrame({
                 width: sWidth,
                 height: sHeight,
@@ -245,12 +245,12 @@ sap.ui.define([
                 uiConfig: { applicationSet: "fiori" },
                 dataset: oDataset
             });
-            
+
             oVizFrame.setModel(oChartModel);
-            
+
             oVizFrame.addFeed(new FeedItem({ uid: "size", type: "Measure", values: ["Valore"] }));
             oVizFrame.addFeed(new FeedItem({ uid: "color", type: "Dimension", values: ["Categoria"] }));
-            
+
             oVizFrame.setVizProperties({
                 plotArea: {
                     colorPalette: aColors,
@@ -271,23 +271,23 @@ sap.ui.define([
                     selectability: { mode: "single" }
                 }
             });
-            
+
             oContainer.addItem(oVizFrame);
             that._chartRefs[sChartKey] = oVizFrame;
         },
-        
-        _createColumnChart: function(sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
+
+        _createColumnChart: function (sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
             var that = this;
             var oContainer = that.byId(sContainerId);
             if (!oContainer) return;
-            
+
             oContainer.removeAllItems();
-            
+
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
-            
+
             var oChartModel = new JSONModel({ items: aData });
-            
+
             var oDataset = new FlattenedDataset({
                 dimensions: [{
                     name: "Categoria",
@@ -301,7 +301,7 @@ sap.ui.define([
                     path: "/items"
                 }
             });
-            
+
             var oVizFrame = new VizFrame({
                 width: sWidth,
                 height: sHeight,
@@ -309,12 +309,12 @@ sap.ui.define([
                 uiConfig: { applicationSet: "fiori" },
                 dataset: oDataset
             });
-            
+
             oVizFrame.setModel(oChartModel);
-            
+
             oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Valore"] }));
             oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
-            
+
             oVizFrame.setVizProperties({
                 plotArea: {
                     colorPalette: aColors,
@@ -339,23 +339,23 @@ sap.ui.define([
                     selectability: { mode: "single" }
                 }
             });
-            
+
             oContainer.addItem(oVizFrame);
             that._chartRefs[sChartKey] = oVizFrame;
         },
-        
-        _createBarChart: function(sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
+
+        _createBarChart: function (sContainerId, sDataPath, aColors, sWidth, sHeight, sChartKey) {
             var that = this;
             var oContainer = that.byId(sContainerId);
             if (!oContainer) return;
-            
+
             oContainer.removeAllItems();
-            
+
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
-            
+
             var oChartModel = new JSONModel({ items: aData });
-            
+
             var oDataset = new FlattenedDataset({
                 dimensions: [{
                     name: "Categoria",
@@ -369,7 +369,7 @@ sap.ui.define([
                     path: "/items"
                 }
             });
-            
+
             var oVizFrame = new VizFrame({
                 width: sWidth,
                 height: sHeight,
@@ -377,12 +377,12 @@ sap.ui.define([
                 uiConfig: { applicationSet: "fiori" },
                 dataset: oDataset
             });
-            
+
             oVizFrame.setModel(oChartModel);
-            
+
             oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Valore"] }));
             oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
-            
+
             oVizFrame.setVizProperties({
                 plotArea: {
                     colorPalette: aColors,
@@ -408,7 +408,7 @@ sap.ui.define([
                     selectability: { mode: "single" }
                 }
             });
-            
+
             oContainer.addItem(oVizFrame);
             that._chartRefs[sChartKey] = oVizFrame;
         },
@@ -416,7 +416,7 @@ sap.ui.define([
         /**
          * Scostamento chart: two columns - "Pianificato" (single) and "Marcato" (stacked marcate + varianza)
          */
-        _createScostamentoChart: function(sContainerId, sDataPath, sWidth, sHeight, sChartKey) {
+        _createScostamentoChart: function (sContainerId, sDataPath, sWidth, sHeight, sChartKey) {
             var that = this;
             var oContainer = that.byId(sContainerId);
             if (!oContainer) return;
@@ -428,7 +428,7 @@ sap.ui.define([
 
             var pianificate = 0, secondValue = 0, varianza = 0;
             var secondLabel = "Ore marcate";
-            aData.forEach(function(item) {
+            aData.forEach(function (item) {
                 if (item.label === "Ore pianificate") pianificate = item.value;
                 else if (item.label === "Ore marcate" || item.label === "Ore completate" || item.label === "Ore effettive") {
                     secondValue = item.value;
@@ -447,7 +447,7 @@ sap.ui.define([
             var chartH = 150; // bar area height in px
             var barW = 60;
 
-            var fmtNum = function(n) {
+            var fmtNum = function (n) {
                 return typeof n === "number" ? n.toFixed(2).replace(".", ",") : String(n);
             };
 
@@ -465,7 +465,7 @@ sap.ui.define([
                     // Top segment first (column direction: top → bottom)
                     segments: [
                         { label: "Ore varianza", value: varianza, color: "#d7022e" },
-                        { label: secondLabel,    value: secondValue, color: "#c0c2be" }
+                        { label: secondLabel, value: secondValue, color: "#c0c2be" }
                     ]
                 }
             ];
@@ -478,14 +478,14 @@ sap.ui.define([
             // Bar area row (fixed height so bars are bottom-aligned)
             sHtml += '<div style="display:flex;align-items:flex-end;justify-content:space-evenly;height:' + (chartH + 22) + 'px;padding:0 8px;">';
 
-            aBars.forEach(function(bar, idx) {
+            aBars.forEach(function (bar, idx) {
                 var totalH = bar.total > 0 ? (bar.total / maxValue) * chartH : 0;
                 sHtml += '<div class="scost-bar" data-idx="' + idx + '" style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">';
                 // CHANGE 2: value label ABOVE the bar (outside, not inside)
                 sHtml += '<span style="font-weight:bold;margin-bottom:3px;font-size:0.75rem;">' + fmtNum(bar.total) + '</span>';
                 // Stacked bar container
                 sHtml += '<div style="width:' + barW + 'px;height:' + totalH + 'px;display:flex;flex-direction:column;overflow:hidden;">';
-                bar.segments.forEach(function(seg) {
+                bar.segments.forEach(function (seg) {
                     var segH = bar.total > 0 ? (seg.value / maxValue) * chartH : 0;
                     if (segH < 1 && seg.value > 0) { segH = 1; }
                     sHtml += '<div style="width:100%;height:' + segH + 'px;background:' + seg.color + ';flex-shrink:0;"></div>';
@@ -498,7 +498,7 @@ sap.ui.define([
 
             // X-axis labels
             sHtml += '<div style="display:flex;justify-content:space-evenly;padding:0 8px;">';
-            aBars.forEach(function(bar) {
+            aBars.forEach(function (bar) {
                 sHtml += '<span style="width:' + barW + 'px;text-align:center;font-size:0.75rem;">' + bar.category + '</span>';
             });
             sHtml += '</div>';
@@ -514,10 +514,10 @@ sap.ui.define([
 
             var oHtml = new sap.ui.core.HTML({
                 content: sHtml,
-                afterRendering: function() {
-                    setTimeout(function() {
+                afterRendering: function () {
+                    setTimeout(function () {
                         // CHANGE 3: click on bar → popup with name and value
-                        jQuery('#' + sId + ' .scost-bar').off('click').on('click', function(e) {
+                        jQuery('#' + sId + ' .scost-bar').off('click').on('click', function (e) {
                             var idx = parseInt(jQuery(this).data('idx'));
                             if (!isNaN(idx) && aBars[idx]) {
                                 that._showScostamentoPopup(e.currentTarget, aBars[idx]);
@@ -531,7 +531,7 @@ sap.ui.define([
             that._chartRefs[sChartKey] = oHtml;
         },
 
-        _showScostamentoPopup: function(oDomTarget, oBar) {
+        _showScostamentoPopup: function (oDomTarget, oBar) {
             var that = this;
 
             if (that._oScostamentoPopover) {
@@ -539,7 +539,7 @@ sap.ui.define([
                 that._oScostamentoPopover = null;
             }
 
-            var fmtNum = function(n) {
+            var fmtNum = function (n) {
                 return typeof n === "number" ? n.toFixed(2).replace(".", ",") : String(n);
             };
 
@@ -554,7 +554,7 @@ sap.ui.define([
             oVBox.addItem(oCatHBox);
 
             // One row per segment
-            oBar.segments.forEach(function(seg) {
+            oBar.segments.forEach(function (seg) {
                 var oRow = new sap.m.HBox({ justifyContent: "SpaceBetween", class: "sapUiSmallMarginTop" });
                 oRow.addItem(new sap.m.Text({ text: seg.label }));
                 oRow.addItem(new sap.m.Text({
@@ -567,7 +567,7 @@ sap.ui.define([
             var oPopover = new Popover({
                 title: "Selezione attuale",
                 content: [oVBox],
-                afterClose: function() {
+                afterClose: function () {
                     oPopover.destroy();
                     that._oScostamentoPopover = null;
                 }
@@ -581,7 +581,7 @@ sap.ui.define([
         /**
          * Simple horizontal bar chart using HTML - always shows all categories even with value 0
          */
-        _createSimpleBarChart: function(sContainerId, sDataPath, aColors) {
+        _createSimpleBarChart: function (sContainerId, sDataPath, aColors) {
             var that = this;
             var oContainer = that.byId(sContainerId);
             if (!oContainer) return;
@@ -591,11 +591,11 @@ sap.ui.define([
             var aData = that.oKPIModel.getProperty(sDataPath);
             if (!aData || aData.length === 0) return;
 
-            var iMax = Math.max.apply(null, aData.map(function(d) { return d.value; }));
+            var iMax = Math.max.apply(null, aData.map(function (d) { return d.value; }));
             if (iMax === 0) iMax = 1;
 
             var sHtml = '<div style="width:100%;font-family:Arial,sans-serif;font-size:0.75rem;">';
-            aData.forEach(function(item, i) {
+            aData.forEach(function (item, i) {
                 var color = aColors[i % aColors.length] || "#808080";
                 var widthPct = Math.max((item.value / iMax) * 100, 0);
                 // Ensure at least a thin line for 0 values
@@ -612,17 +612,17 @@ sap.ui.define([
 
             oContainer.addItem(new sap.ui.core.HTML({ content: sHtml }));
         },
-        
+
         // ========== CHART CLICK HANDLER ==========
-        
-        _onChartSelect: function(sChartKey, oEvent) {
+
+        _onChartSelect: function (sChartKey, oEvent) {
             var aData = oEvent.getParameter("data");
             if (!aData || aData.length === 0) return;
-            
+
             var oSelectedData = aData[0].data;
             var sCategory = oSelectedData.Categoria;
             var iValue = oSelectedData.Valore;
-            
+
             switch (sChartKey) {
                 case "machineProgress":
                     this.onMachineProgressDetails();
@@ -653,16 +653,16 @@ sap.ui.define([
                     break;
             }
         },
-        
+
         // ========== EVENT HANDLERS ==========
-        
-        onNavBack: function() {
+
+        onNavBack: function () {
             var that = this;
             var oDashboardNavContainer = that.getInfoModel().getProperty("/oNavContainer");
             oDashboardNavContainer.back();
         },
-        
-        onSegmentedButtonSelect: function(oEvent) {
+
+        onSegmentedButtonSelect: function (oEvent) {
             var that = this;
             var sKey = oEvent.getParameter("key");
             var labelMap = { "all": "% All SFC", "gruppi": "% SFC Gruppi", "aggr": "% SFC Aggregati", "macr": "% SFC Macroaggregati" };
@@ -679,7 +679,7 @@ sap.ui.define([
                 ["#a2c997", "#c0c2be", "#3e3e3e"], "280px", "250px", "sfcProgress");
         },
 
-        onScostamentoSegmentedButtonSelect: function(oEvent) {
+        onScostamentoSegmentedButtonSelect: function (oEvent) {
             var that = this;
             var sKey = oEvent.getParameter("key");
             that._applyScostamentoLevel(sKey);
@@ -692,23 +692,23 @@ sap.ui.define([
                 "250px", "200px", "scostamento");
         },
 
-        _applyGruppiLevel: function(sKey) {
+        _applyGruppiLevel: function (sKey) {
             var that = this;
             var aLevelData = that.oKPIModel.getProperty("/charts/gruppiLevels/" + sKey);
             if (!aLevelData) return;
             // Derive card values from the array
             var oGruppi = {};
-            aLevelData.forEach(function(item) {
+            aLevelData.forEach(function (item) {
                 if (item.label === "SFC Da Iniziare") oGruppi.daIniziare = item.value + "%";
-                if (item.label === "SFC Iniziati")    oGruppi.iniziati = item.value + "%";
-                if (item.label === "SFC Completati")  oGruppi.completati = item.value + "%";
+                if (item.label === "SFC Iniziati") oGruppi.iniziati = item.value + "%";
+                if (item.label === "SFC Completati") oGruppi.completati = item.value + "%";
             });
             that.oKPIModel.setProperty("/charts/gruppi", oGruppi);
             // Use same data for chart
             that.oKPIModel.setProperty("/charts/chartData/sfcProgress", aLevelData);
         },
 
-        _applyScostamentoLevel: function(sKey) {
+        _applyScostamentoLevel: function (sKey) {
             var that = this;
             var aLevelData = that.oKPIModel.getProperty("/charts/chartData/scostamentoLevels/" + sKey);
             if (!aLevelData) return;
@@ -717,7 +717,7 @@ sap.ui.define([
 
         // ========== HELPER: API call for details ==========
 
-        _getBaseParams: function() {
+        _getBaseParams: function () {
             var that = this;
             var oSelectedData = that.getInfoModel().getProperty("/selectedRow");
             return {
@@ -731,10 +731,10 @@ sap.ui.define([
 
         // ========== HELPER: Excel Export ==========
 
-        _exportToExcel: function(aColumns, aData, sFileName) {
-            var aExportColumns = aColumns.filter(function(col) {
+        _exportToExcel: function (aColumns, aData, sFileName) {
+            var aExportColumns = aColumns.filter(function (col) {
                 return !col.isIcon;
-            }).map(function(col) {
+            }).map(function (col) {
                 return { label: col.label, property: col.key, type: "String" };
             });
 
@@ -745,7 +745,7 @@ sap.ui.define([
             };
 
             var oSheet = new Spreadsheet(oSettings);
-            oSheet.build().finally(function() {
+            oSheet.build().finally(function () {
                 oSheet.destroy();
             });
         },
@@ -754,12 +754,12 @@ sap.ui.define([
 
         // ========== HELPER: Create detail table from { columns, data } response ==========
 
-        _createDetailTable: function(oResponse, sModelName) {
+        _createDetailTable: function (oResponse, sModelName) {
             var aColumns = oResponse.columns;
             var aData = oResponse.data;
             var oModel = new JSONModel({ items: aData });
 
-            var aColumnControls = aColumns.map(function(col) {
+            var aColumnControls = aColumns.map(function (col) {
                 return new Column({
                     header: new Label({ text: col.label, design: "Bold" }),
                     width: col.width || "auto",
@@ -768,7 +768,7 @@ sap.ui.define([
             });
 
             var oTemplate = new ColumnListItem({
-                cells: aColumns.map(function(col) {
+                cells: aColumns.map(function (col) {
                     return new Text({ text: "{" + sModelName + ">" + col.key + "}" });
                 })
             });
@@ -784,8 +784,8 @@ sap.ui.define([
             oTable.setModel(oModel, sModelName);
 
             var oSorter = null;
-            aColumnControls.forEach(function(oCol, idx) {
-                oCol.attachEventOnce("columnMenuOpen", function() {});
+            aColumnControls.forEach(function (oCol, idx) {
+                oCol.attachEventOnce("columnMenuOpen", function () { });
             });
 
             oTable.bindItems({
@@ -797,12 +797,12 @@ sap.ui.define([
             return oTable;
         },
 
-        _createDetailDialog: function(sTitle, oResponse, sModelName) {
+        _createDetailDialog: function (sTitle, oResponse, sModelName) {
             var aColumns = oResponse.columns;
             var aData = oResponse.data;
             var oModel = new JSONModel({ items: aData });
 
-            var aTableColumns = aColumns.map(function(col) {
+            var aTableColumns = aColumns.map(function (col) {
                 return new UIColumn({
                     label: new Label({ text: col.label }),
                     sortProperty: col.key,
@@ -834,15 +834,15 @@ sap.ui.define([
                 beginButton: new Button({
                     icon: "sap-icon://excel-attachment",
                     text: "Esporta Excel",
-                    press: function() {
+                    press: function () {
                         that._exportToExcel(aColumns, aData, sTitle + ".xlsx");
                     }
                 }),
                 endButton: new Button({
                     text: "Chiudi",
-                    press: function() { oDialog.close(); }
+                    press: function () { oDialog.close(); }
                 }),
-                afterClose: function() { oDialog.destroy(); }
+                afterClose: function () { oDialog.destroy(); }
             });
 
             oDialog.open();
@@ -850,7 +850,7 @@ sap.ui.define([
 
         // ========== 2.2.1 Machine Progress Details ==========
 
-        onMachineProgressDetails: function() {
+        onMachineProgressDetails: function () {
             var oResponse = this.oKPIModel.getProperty("/charts/details/machineProgress");
             if (!oResponse) return;
 
@@ -896,7 +896,7 @@ sap.ui.define([
 
         // ========== 2.2.2 SFC Gruppi Progress Details ==========
 
-        onSFCProgressDetails: function() {
+        onSFCProgressDetails: function () {
             var oSegBtn = this.byId("gruppiSegmentedButton");
             var sLevel = oSegBtn ? oSegBtn.getSelectedKey() : "gruppi";
             var oResponse = this.oKPIModel.getProperty("/charts/details/sfcProgress/" + sLevel);
@@ -907,7 +907,7 @@ sap.ui.define([
             var aOrderData = oResponse.data;
             var oOrderModel = new JSONModel({ items: aOrderData });
             var oOrderTable = new sap.ui.table.Table({
-                columns: aOrderCols.map(function(col) {
+                columns: aOrderCols.map(function (col) {
                     return new UIColumn({
                         label: new Label({ text: col.label }),
                         sortProperty: col.key,
@@ -928,7 +928,7 @@ sap.ui.define([
             var aOpsData = oResponse.opsData;
             var oOpsModel = new JSONModel({ items: aOpsData });
             var oOpsTable = new sap.ui.table.Table({
-                columns: aOpsCols.map(function(col) {
+                columns: aOpsCols.map(function (col) {
                     return new UIColumn({
                         label: new Label({ text: col.label }),
                         sortProperty: col.key,
@@ -964,7 +964,7 @@ sap.ui.define([
                 beginButton: new Button({
                     icon: "sap-icon://excel-attachment",
                     text: "Esporta Excel",
-                    press: function() {
+                    press: function () {
                         var sSelectedKey = oIconTabBar.getSelectedKey();
                         if (sSelectedKey === "operazioni") {
                             that._exportToExcel(aOpsCols, aOpsData, sDialogTitle + " - Operazioni.xlsx");
@@ -973,15 +973,15 @@ sap.ui.define([
                         }
                     }
                 }),
-                endButton: new Button({ text: "Chiudi", press: function() { oDialog.close(); } }),
-                afterClose: function() { oDialog.destroy(); }
+                endButton: new Button({ text: "Chiudi", press: function () { oDialog.close(); } }),
+                afterClose: function () { oDialog.destroy(); }
             });
             oDialog.open();
         },
 
         // ========== 2.2.3 Scostamento Details ==========
 
-        onScostamentoDetails: function() {
+        onScostamentoDetails: function () {
             var oSegBtn = this.byId("scostamentoSegmentedButton");
             var sWorkcenter = oSegBtn ? oSegBtn.getSelectedKey() : "GD";
             var oResponse = this.oKPIModel.getProperty("/charts/details/scostamento/" + sWorkcenter);
@@ -996,7 +996,7 @@ sap.ui.define([
 
         // ========== 2.3 Mancanti Details - Apre report Mancanti in nuova pagina ==========
 
-        onMancantiDetails: function() {
+        onMancantiDetails: function () {
             var oParams = this._getBaseParams();
             var sPodId = this.getInfoModel().getProperty("/podIdValues/MANCANTI_REPORT") || "MANCANTI_REPORT";
             var sBaseUrl = window.location.href.split("?")[0];
@@ -1010,7 +1010,7 @@ sap.ui.define([
 
         // ========== 2.4 Evasi Details ==========
 
-        onEvasiDetails: function() {
+        onEvasiDetails: function () {
             var oResponse = this.oKPIModel.getProperty("/charts/details/evasi");
             if (oResponse) {
                 this._createDetailDialog(
@@ -1023,7 +1023,7 @@ sap.ui.define([
 
         // ========== 2.5.1 NC Details - Apre report Defect in nuova pagina ==========
 
-        onNCDetails: function() {
+        onNCDetails: function () {
             var oParams = this._getBaseParams();
             var sPodId = this.getInfoModel().getProperty("/podIdValues/DEFECT_REPORT") || "DEFECT_REPORT";
             var sBaseUrl = window.location.href.split("?")[0];
@@ -1037,7 +1037,7 @@ sap.ui.define([
 
         // ========== 2.5.2 Modifiche Engineering Details ==========
 
-        onModificheDetails: function() {
+        onModificheDetails: function () {
             var oResponse = this.oKPIModel.getProperty("/charts/details/modifiche");
             if (oResponse) {
                 this._createTreeTableDetailDialog(
@@ -1048,7 +1048,7 @@ sap.ui.define([
             }
         },
 
-        _createTreeTableDetailDialog: function(sTitle, oResponse, sModelName, aHeaderContent) {
+        _createTreeTableDetailDialog: function (sTitle, oResponse, sModelName, aHeaderContent) {
             var aParentCols = oResponse.parentColumns;
             var aChildCols = oResponse.childColumns;
             var aTreeData = oResponse.data;
@@ -1056,58 +1056,55 @@ sap.ui.define([
             // Merge tutte le colonne (parent + child) per un'unica TreeTable
             var allColumns = aParentCols.concat(aChildCols);
 
-            // Trasforma dati in formato TreeTable flat con children
-            var aRows = aTreeData.map(function(parent) {
+            /**
+             * Trasforma ricorsivamente un nodo (ordine o operazione) in formato TreeTable.
+             * I nodi ordine (_isOperation: false) mostrano i campi parent + i campi child cumulativi.
+             * I nodi operazione (_isOperation: true) mostrano solo i campi child.
+             */
+            var fnBuildRow = function (node) {
                 var oRow = {};
-                // Popola campi parent
-                aParentCols.forEach(function(col) {
-                    oRow[col.key] = parent[col.key] || "";
-                });
-                // Popola anche campi child presenti nel parent (totali cumulativi)
-                aChildCols.forEach(function(col) {
-                    if (parent[col.key] !== undefined) {
-                        oRow[col.key] = parent[col.key];
-                    }
-                });
-                // Children
-                oRow.children = (parent.children || []).map(function(child) {
-                    var oChild = {};
-                    // Campi parent vuoti per i figli
-                    aParentCols.forEach(function(col) {
-                        oChild[col.key] = "";
-                    });
-                    // Campi child
-                    aChildCols.forEach(function(col) {
-                        oChild[col.key] = child[col.key] !== undefined ? child[col.key] : "";
-                    });
-                    oChild.children = [];
-                    return oChild;
-                });
-                return oRow;
-            });
 
+                if (node._isOperation) {
+                    // Nodo foglia: operazione
+                    aParentCols.forEach(function (col) { oRow[col.key] = ""; });
+                    aChildCols.forEach(function (col) {
+                        oRow[col.key] = node[col.key] !== undefined ? node[col.key] : "";
+                    });
+                    oRow.children = [];
+                } else {
+                    // Nodo ordine: mostra campi parent + campi child cumulativi sul nodo stesso
+                    aParentCols.forEach(function (col) {
+                        oRow[col.key] = node[col.key] !== undefined ? node[col.key] : "";
+                    });
+                    aChildCols.forEach(function (col) {
+                        oRow[col.key] = node[col.key] !== undefined ? node[col.key] : "";
+                    });
+                    // Ricorsione sui children (mix di operazioni e ordini figli)
+                    oRow.children = (node.children || []).map(fnBuildRow);
+                }
+
+                return oRow;
+            };
+
+            var aRows = aTreeData.map(fnBuildRow);
             var oModel = new JSONModel({ rows: aRows });
 
             // Crea colonne TreeTable
-            var aTableColumns = allColumns.map(function(col) {
+            var aTableColumns = allColumns.map(function (col) {
                 if (col.isIcon) {
                     return new UIColumn({
                         label: new Label({ text: col.label }),
-                        sortProperty: col.key,
-                        filterProperty: col.key,
                         template: new sap.ui.core.Icon({
                             src: {
                                 path: sModelName + ">" + col.key,
-                                formatter: function(val) {
+                                formatter: function (val) {
                                     return val === "alert" ? "sap-icon://alert" : "";
                                 }
                             },
                             color: "#cc0000",
                             visible: {
                                 path: sModelName + ">" + col.key,
-                                formatter: function(val) {
-                                    return val === "alert";
-                                }
+                                formatter: function (val) { return val === "alert"; }
                             }
                         }),
                         width: col.width || "auto"
@@ -1137,23 +1134,18 @@ sap.ui.define([
                 parameters: { arrayNames: ["children"] }
             });
 
-            // Flatten tree data for Excel export (parent + children)
+            // Flatten ricorsivo per export Excel
+            var fnFlattenNode = function (node, aFlat) {
+                var oRow = {};
+                allColumns.forEach(function (col) {
+                    oRow[col.key] = node[col.key] !== undefined ? node[col.key] : "";
+                });
+                aFlat.push(oRow);
+                (node.children || []).forEach(function (child) { fnFlattenNode(child, aFlat); });
+            };
+
             var aFlatData = [];
-            aTreeData.forEach(function(parent) {
-                var oParentRow = {};
-                allColumns.forEach(function(col) {
-                    if (parent[col.key] !== undefined) oParentRow[col.key] = parent[col.key];
-                    else oParentRow[col.key] = "";
-                });
-                aFlatData.push(oParentRow);
-                (parent.children || []).forEach(function(child) {
-                    var oChildRow = {};
-                    allColumns.forEach(function(col) {
-                        oChildRow[col.key] = child[col.key] !== undefined ? child[col.key] : "";
-                    });
-                    aFlatData.push(oChildRow);
-                });
-            });
+            aTreeData.forEach(function (root) { fnFlattenNode(root, aFlatData); });
 
             var aDialogContent = (aHeaderContent || []).concat([oTreeTable]);
 
@@ -1168,15 +1160,15 @@ sap.ui.define([
                 beginButton: new Button({
                     icon: "sap-icon://excel-attachment",
                     text: "Esporta Excel",
-                    press: function() {
+                    press: function () {
                         that._exportToExcel(allColumns, aFlatData, sTitle + ".xlsx");
                     }
                 }),
                 endButton: new Button({
                     text: "Chiudi",
-                    press: function() { oDialog.close(); }
+                    press: function () { oDialog.close(); }
                 }),
-                afterClose: function() { oDialog.destroy(); }
+                afterClose: function () { oDialog.destroy(); }
             });
 
             oDialog.open();
@@ -1184,7 +1176,7 @@ sap.ui.define([
 
         // ========== 2.6 Varianze Details ==========
 
-        onTipologiaVarianzeDetails: function() {
+        onTipologiaVarianzeDetails: function () {
             var oResponse = this.oKPIModel.getProperty("/charts/details/tipologiaVarianze");
             if (oResponse) {
                 this._createDetailDialog(
@@ -1195,7 +1187,7 @@ sap.ui.define([
             }
         },
 
-        onResponsabilitaVarianzeDetails: function() {
+        onResponsabilitaVarianzeDetails: function () {
             var oResponse = this.oKPIModel.getProperty("/charts/details/responsabilitaVarianze");
             if (oResponse) {
                 this._createDetailDialog(
@@ -1211,21 +1203,21 @@ sap.ui.define([
         /**
          * Flatten tree data (parent + children) using column definitions
          */
-        _flattenTreeData: function(oResponse) {
+        _flattenTreeData: function (oResponse) {
             var aParentCols = oResponse.parentColumns || [];
             var aChildCols = oResponse.childColumns || [];
             var allColumns = aParentCols.concat(aChildCols);
             var aData = oResponse.data || [];
             var aFlat = [];
-            aData.forEach(function(parent) {
+            aData.forEach(function (parent) {
                 var oRow = {};
-                allColumns.forEach(function(col) {
+                allColumns.forEach(function (col) {
                     oRow[col.key] = parent[col.key] !== undefined ? parent[col.key] : "";
                 });
                 aFlat.push(oRow);
-                (parent.children || []).forEach(function(child) {
+                (parent.children || []).forEach(function (child) {
                     var oChild = {};
-                    allColumns.forEach(function(col) {
+                    allColumns.forEach(function (col) {
                         oChild[col.key] = child[col.key] !== undefined ? child[col.key] : "";
                     });
                     aFlat.push(oChild);
@@ -1238,19 +1230,19 @@ sap.ui.define([
          * Collect all export sections from the details model.
          * Returns array of { name, columns, data } objects.
          */
-        _collectExportSections: function() {
+        _collectExportSections: function () {
             var that = this;
             var details = that.oKPIModel.getProperty("/charts/details") || {};
             var sections = [];
 
             function addFlat(name, oResp) {
                 if (!oResp || !oResp.columns || !oResp.data || oResp.data.length === 0) return;
-                sections.push({ name: name, columns: oResp.columns.filter(function(c) { return !c.isIcon; }), data: oResp.data });
+                sections.push({ name: name, columns: oResp.columns.filter(function (c) { return !c.isIcon; }), data: oResp.data });
             }
             function addTree(name, oResp) {
                 if (!oResp || !oResp.data || oResp.data.length === 0) return;
                 var flat = that._flattenTreeData(oResp);
-                sections.push({ name: name, columns: flat.columns.filter(function(c) { return !c.isIcon; }), data: flat.data });
+                sections.push({ name: name, columns: flat.columns.filter(function (c) { return !c.isIcon; }), data: flat.data });
             }
 
             addTree("Machine Progress", details.machineProgress);
@@ -1269,7 +1261,7 @@ sap.ui.define([
             return sections;
         },
 
-        onDownloadExcel: function() {
+        onDownloadExcel: function () {
             var that = this;
             var sections = that._collectExportSections();
             if (sections.length === 0) {
@@ -1279,7 +1271,7 @@ sap.ui.define([
 
             // Find max column count across all sections
             var maxCols = 0;
-            sections.forEach(function(s) { maxCols = Math.max(maxCols, s.columns.length); });
+            sections.forEach(function (s) { maxCols = Math.max(maxCols, s.columns.length); });
 
             // Build generic export columns (c0..cN) with empty labels
             var aExportColumns = [];
@@ -1289,19 +1281,19 @@ sap.ui.define([
 
             // Build combined data: section header row + column headers row + data rows + blank separator
             var aAllData = [];
-            sections.forEach(function(section, sIdx) {
+            sections.forEach(function (section, sIdx) {
                 // Section name row
                 var oNameRow = {};
                 oNameRow["c0"] = "[ " + section.name + " ]";
                 aAllData.push(oNameRow);
                 // Column headers row
                 var oHeaderRow = {};
-                section.columns.forEach(function(col, ci) { oHeaderRow["c" + ci] = col.label; });
+                section.columns.forEach(function (col, ci) { oHeaderRow["c" + ci] = col.label; });
                 aAllData.push(oHeaderRow);
                 // Data rows
-                section.data.forEach(function(row) {
+                section.data.forEach(function (row) {
                     var oRow = {};
-                    section.columns.forEach(function(col, ci) {
+                    section.columns.forEach(function (col, ci) {
                         var val = row[col.key];
                         oRow["c" + ci] = (val !== undefined && val !== null) ? String(val) : "";
                     });
@@ -1324,10 +1316,10 @@ sap.ui.define([
                 fileName: sFileName,
                 showProgress: false
             });
-            oSheet.build().finally(function() { oSheet.destroy(); });
+            oSheet.build().finally(function () { oSheet.destroy(); });
         },
 
-        onDownloadPDF: function() {
+        onDownloadPDF: function () {
             var that = this;
             var oPage = that.byId("kpiDashboardPage");
             var oDomRef = oPage && oPage.getDomRef ? oPage.getDomRef() : null;
@@ -1352,7 +1344,7 @@ sap.ui.define([
             document.body.classList.add("kpi-print-mode");
 
             var bCleaned = false;
-            var fnCleanup = function() {
+            var fnCleanup = function () {
                 if (bCleaned) return;
                 bCleaned = true;
                 document.body.classList.remove("kpi-print-mode");
@@ -1367,7 +1359,7 @@ sap.ui.define([
             });
 
             // Let layout settle before opening print dialog.
-            setTimeout(function() {
+            setTimeout(function () {
                 window.print();
             }, 150);
 
@@ -1375,9 +1367,9 @@ sap.ui.define([
             setTimeout(fnCleanup, 15000);
         },
 
-        onExit: function() {
+        onExit: function () {
             this._destroyAllCharts();
         }
 
-	});
+    });
 });
