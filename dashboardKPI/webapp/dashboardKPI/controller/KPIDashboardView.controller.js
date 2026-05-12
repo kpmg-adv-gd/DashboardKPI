@@ -186,9 +186,8 @@ sap.ui.define([
                 that._createSimpleBarChart("modificheClosedChartContainer", "/charts/chartData/modificheClosed",
                     ["#d7022e", "#d9585d", "#fe968b"]);
 
-                that._createColumnChart("tipologiaVarianzeChartContainer", "/charts/chartData/tipologiaVarianze",
-                    ["#747971", "#747971", "#747971", "#747971", "#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971"],
-                    "100%", "240px", "tipologiaVarianze");
+                that._createParetoChart("tipologiaVarianzeChartContainer", "/charts/chartData/tipologiaVarianze",
+                    "#747971", "#d45b00", "100%", "280px", "tipologiaVarianze");
 
                 that._createColumnChart("responsabilitaVarianzeChartContainer", "/charts/chartData/responsabilitaVarianze",
                     ["#747971", "#d7022e", "#747971", "#747971", "#747971", "#747971", "#747971"],
@@ -326,6 +325,102 @@ sap.ui.define([
                 },
                 valueAxis: {
                     title: { visible: false }
+                },
+                categoryAxis: {
+                    title: { visible: false },
+                    label: {
+                        rotation: "auto"
+                    }
+                },
+                legend: { visible: false },
+                title: { visible: false },
+                interaction: {
+                    selectability: { mode: "single" }
+                }
+            });
+
+            oContainer.addItem(oVizFrame);
+            that._chartRefs[sChartKey] = oVizFrame;
+        },
+
+        _createParetoChart: function (sContainerId, sDataPath, sBarColor, sLineColor, sWidth, sHeight, sChartKey) {
+            var that = this;
+            var oContainer = that.byId(sContainerId);
+            if (!oContainer) return;
+
+            oContainer.removeAllItems();
+
+            var aData = that.oKPIModel.getProperty(sDataPath);
+            if (!aData || aData.length === 0) return;
+
+            // Calculate cumulative percentage for Pareto curve
+            var total = aData.reduce(function (sum, item) { return sum + item.value; }, 0);
+            var cumulative = 0;
+            var aParetoData = aData.map(function (item) {
+                cumulative += item.value;
+                var pct = total > 0 ? Math.round(cumulative / total * 100) : 0;
+                return { label: item.label, value: item.value, pareto: pct };
+            });
+
+            var oChartModel = new JSONModel({ items: aParetoData });
+
+            var oDataset = new FlattenedDataset({
+                dimensions: [{
+                    name: "Categoria",
+                    value: "{label}"
+                }],
+                measures: [{
+                    name: "Valore",
+                    value: "{value}"
+                }, {
+                    name: "Pareto %",
+                    value: "{pareto}"
+                }],
+                data: {
+                    path: "/items"
+                }
+            });
+
+            var oVizFrame = new VizFrame({
+                width: sWidth,
+                height: sHeight,
+                vizType: "dual_combination",
+                uiConfig: { applicationSet: "fiori" },
+                dataset: oDataset
+            });
+
+            oVizFrame.setModel(oChartModel);
+
+            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis", type: "Measure", values: ["Valore"] }));
+            oVizFrame.addFeed(new FeedItem({ uid: "valueAxis2", type: "Measure", values: ["Pareto %"] }));
+            oVizFrame.addFeed(new FeedItem({ uid: "categoryAxis", type: "Dimension", values: ["Categoria"] }));
+
+            oVizFrame.setVizProperties({
+                plotArea: {
+                    primaryValuesColorPalette: [sBarColor],
+                    secondaryValuesColorPalette: [sLineColor],
+                    dataShape: {
+                        primaryAxis: ["bar"],
+                        secondaryAxis: ["line"]
+                    },
+                    dataLabel: {
+                        visible: true,
+                        style: { fontSize: "0.7rem" }
+                    },
+                    drawingEffect: "normal",
+                    line: {
+                        marker: {
+                            visible: true,
+                            size: 6
+                        }
+                    }
+                },
+                valueAxis: {
+                    title: { visible: false }
+                },
+                valueAxis2: {
+                    title: { visible: false },
+                    scale: { fixedRange: true, minValue: 0, maxValue: 100 }
                 },
                 categoryAxis: {
                     title: { visible: false },
@@ -1209,20 +1304,17 @@ sap.ui.define([
             var allColumns = aParentCols.concat(aChildCols);
             var aData = oResponse.data || [];
             var aFlat = [];
-            aData.forEach(function (parent) {
+
+            var fnFlattenNode = function (node) {
                 var oRow = {};
                 allColumns.forEach(function (col) {
-                    oRow[col.key] = parent[col.key] !== undefined ? parent[col.key] : "";
+                    oRow[col.key] = node[col.key] !== undefined ? node[col.key] : "";
                 });
                 aFlat.push(oRow);
-                (parent.children || []).forEach(function (child) {
-                    var oChild = {};
-                    allColumns.forEach(function (col) {
-                        oChild[col.key] = child[col.key] !== undefined ? child[col.key] : "";
-                    });
-                    aFlat.push(oChild);
-                });
-            });
+                (node.children || []).forEach(function (child) { fnFlattenNode(child); });
+            };
+
+            aData.forEach(fnFlattenNode);
             return { columns: allColumns, data: aFlat };
         },
 
